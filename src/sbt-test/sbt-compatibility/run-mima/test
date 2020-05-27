@@ -1,0 +1,4 @@
+> core/compatibilityReportDependencyIssues
+> core/mimaFindBinaryIssues
+-> core/mimaReportBinaryIssues
+-> core/compatibilityCheck

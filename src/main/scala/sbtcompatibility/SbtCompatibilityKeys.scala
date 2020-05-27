@@ -8,6 +8,7 @@ import sbt.librarymanagement.{DependencyResolution, ScalaModuleInfo, UpdateConfi
 trait SbtCompatibilityKeys {
   final val compatibilityPreviousArtifacts      = taskKey[Seq[ModuleID]]("")
   final val compatibilityReportDependencyIssues = taskKey[Unit]("")
+  final val compatibilityCheck                  = taskKey[Unit]("Runs both compatibilityReportDependencyIssues and mimaReportBinaryIssues")
 
   final val compatibilityReconciliations        = taskKey[Seq[(lmcoursier.definitions.ModuleMatchers, Reconciliation)]]("")
   final val compatibilityCheckDirection         = taskKey[Direction]("")
