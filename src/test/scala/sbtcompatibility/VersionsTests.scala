@@ -1,5 +1,6 @@
 package sbtcompatibility
 
+import lmcoursier.definitions.Reconciliation
 import sbtcompatibility.version.Version
 import utest._
 
@@ -23,6 +24,13 @@ object VersionsTests extends TestSuite {
       * -  check("1.1-RC2", "1.0")
       * - checkEmpty("1.0-RC2")
       * - checkEmpty("1.0-RC2+43")
+    }
+
+    "compatible" - {
+      * - {
+        val compatible = Version.compatible(Reconciliation.SemVer, "0.1.0", "0.1.0+foo")
+        assert(compatible)
+      }
     }
   }
 
