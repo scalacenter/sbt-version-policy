@@ -8,6 +8,14 @@ lazy val a = project
     version := "0.1.0"
   )
 
+lazy val a1 = project
+  .dependsOn(a)
+  .settings(
+    shared,
+    name := "simple-test-foo",
+    version := "0.1.0"
+  )
+
 lazy val b = project
   .settings(
     shared,
@@ -15,6 +23,14 @@ lazy val b = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
+    version := "0.1.1"
+  )
+
+lazy val b1 = project
+  .dependsOn(b)
+  .settings(
+    shared,
+    name := "simple-test-foo",
     version := "0.1.1"
   )
 

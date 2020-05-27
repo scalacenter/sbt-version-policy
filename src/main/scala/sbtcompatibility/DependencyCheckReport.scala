@@ -1,15 +1,8 @@
 package sbtcompatibility
 
-import java.util.regex.Pattern
-
 import dataclass.data
 import lmcoursier.definitions._
-import lmcoursier.definitions.Reconciliation.Default
-import lmcoursier.definitions.Reconciliation.Relaxed
-import lmcoursier.definitions.Reconciliation.SemVer
 import sbtcompatibility.version.Version
-
-import scala.collection.mutable
 
 @data class DependencyCheckReport(
   backwardStatuses: Map[(String, String), DependencyCheckReport.ModuleStatus],
@@ -100,26 +93,12 @@ object DependencyCheckReport {
                 rec
             }
             .getOrElse(defaultReconciliation)
-          if (compatible(reconciliation, ver, currentVersion))
+          if (Version.compatible(reconciliation, ver, currentVersion))
             CompatibleVersion(currentVersion, ver, reconciliation)
           else
             IncompatibleVersion(currentVersion, ver, reconciliation)
       }
 
       orgName -> status
-    }
-
-  private def compatible(reconciliation: Reconciliation, version: String, otherVersion: String): Boolean =
-    reconciliation match {
-      case lmcoursier.definitions.Reconciliation.Strict => version == otherVersion
-      case Relaxed => true
-      case Default | SemVer =>
-        version == otherVersion || {
-          val comparisonOpt = for {
-            prefix0 <- Version.prefix(version)
-            otherPrefix <- Version.prefix(otherVersion)
-          } yield prefix0 == otherPrefix
-          comparisonOpt.exists(identity)
-        }
     }
 }
