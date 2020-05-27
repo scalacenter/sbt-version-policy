@@ -3,6 +3,7 @@ package sbtcompatibility
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import sbt.{Compile, Def}
 import sbt.Keys._
+import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
 import sbtcompatibility.internal.DependencyCheck
@@ -33,6 +34,22 @@ object SbtCompatibilitySettings {
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
     compatibilityReconciliations := Seq.empty,
+    compatibilityDetailedReconciliations := {
+      val sv = scalaVersion.value
+      val sbv = scalaBinaryVersion.value
+      compatibilityReconciliations.value.map { mod =>
+        import lmcoursier.definitions._
+        val rec = Reconciliation(mod.revision) match {
+          case Some(r) => r
+          case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
+        }
+        val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
+        val matchers = ModuleMatchers.only(
+          Module(Organization(mod.organization), ModuleName(name), Map())
+        )
+        (matchers, rec)
+      }
+    },
     compatibilityDefaultReconciliation := Reconciliation.SemVer
   )
 
@@ -92,7 +109,7 @@ object SbtCompatibilitySettings {
           } else
             Nil
 
-        val ours = compatibilityReconciliations.value
+        val ours = compatibilityDetailedReconciliations.value
 
         ours ++ fromCsrConfig
       }
