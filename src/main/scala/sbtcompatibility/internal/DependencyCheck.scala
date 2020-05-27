@@ -20,10 +20,10 @@ object DependencyCheck {
       .filter(!_.evicted)
       .map(_.module)
       .map { mod =>
-        val version = CrossVersion(mod.crossVersion, scalaVersion, scalaBinaryVersion)
-          .fold(mod.revision)(_(mod.revision))
+        val name = CrossVersion(mod.crossVersion, scalaVersion, scalaBinaryVersion)
+          .fold(mod.name)(_(mod.name))
         // TODO Check mod.explicitArtifacts too?
-        (mod.organization, mod.name) -> version
+        (mod.organization, name) -> mod.revision
       }
       .groupBy(_._1)
       .map {
