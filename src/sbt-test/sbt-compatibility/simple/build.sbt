@@ -48,6 +48,20 @@ lazy val d = project
     version := "0.1.1"
   )
 
+lazy val e = project
+  .settings(
+    shared,
+    name := "simple-test",
+    libraryDependencies ++= Seq(
+      "io.get-coursier" %% "coursier" % "2.0.0-RC6-18" % Provided
+    ),
+    compatibilityIgnored ++= Seq(
+      "com.chuusai" %% "shapeless",
+      "org.typelevel" %% "macro-compat"
+    ),
+    version := "0.1.1"
+  )
+
 inThisBuild(List(
   scalaVersion := "2.12.11",
   organization := "io.github.alexarchambault.sbtcompatibility.test",

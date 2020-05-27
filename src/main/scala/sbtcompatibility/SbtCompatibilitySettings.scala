@@ -18,11 +18,15 @@ object SbtCompatibilitySettings {
 
   def updateSettings = Def.settings(
     compatibilityCsrConfiguration := csrConfiguration.value
+      // TODO Make that a method on CoursierConfiguration
       .withInterProjectDependencies(Vector.empty)
+      .withFallbackDependencies(Vector.empty)
       .withSbtScalaOrganization(None)
       .withSbtScalaVersion(None)
       .withSbtScalaJars(Vector.empty)
-      .withExcludeDependencies(Vector.empty),
+      .withExcludeDependencies(Vector.empty)
+      .withForceVersions(Vector.empty)
+      .withReconciliation(Vector.empty),
     compatibilityDependencyResolution := CoursierDependencyResolution(compatibilityCsrConfiguration.value),
     compatibilityUpdateConfiguration := updateConfiguration.value,
     compatibilityUnresolvedWarningConfiguration := unresolvedWarningConfiguration.in(update).value,
@@ -34,6 +38,7 @@ object SbtCompatibilitySettings {
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
     compatibilityReconciliations := Seq.empty,
+    compatibilityIgnored := Seq.empty,
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -93,7 +98,7 @@ object SbtCompatibilitySettings {
       val warningConfig = compatibilityUnresolvedWarningConfiguration.value
 
       val reconciliations = {
-        val csrConfig = compatibilityCsrConfiguration.value
+        val csrConfig = csrConfiguration.value
         val useCsrConfigReconciliations = compatibilityUseCsrConfigReconciliations.value
         val ignoreSbtDefaultReconciliations = compatibilityIgnoreSbtDefaultReconciliations.value
 
@@ -140,15 +145,25 @@ object SbtCompatibilitySettings {
     },
     compatibilityReportDependencyIssues := {
       val log = streams.value.log
+      val sv = scalaVersion.value
+      val sbv = scalaBinaryVersion.value
       val direction = compatibilityCheckDirection.value
       val reports = compatibilityFindDependencyIssues.value
 
       if (reports.isEmpty)
         log.warn(s"No dependency check reports found (empty compatibilityPreviousArtifacts?).")
 
+      val ignored = compatibilityIgnored.value
+        .map { orgName =>
+          val mod = orgName % "foo"
+          val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
+          (mod.organization, name)
+        }
+        .toSet
+
       var anyError = false
       for ((previousModule, report) <- reports) {
-        val errors = report.errors(direction)
+        val (warnings, errors) = report.errors(direction, ignored)
         if (errors.nonEmpty) {
           anyError = true
           log.error(s"Incompatibilities with $previousModule")

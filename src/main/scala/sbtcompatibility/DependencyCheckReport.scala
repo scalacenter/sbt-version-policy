@@ -19,22 +19,34 @@ import scala.collection.mutable
     (!direction.backward || backwardStatuses.forall(_._2.validated)) &&
       (!direction.forward || forwardStatuses.forall(_._2.validated))
 
-  def errors(direction: Direction): Seq[String] = {
+  def errors(direction: Direction, ignored: Set[(String, String)] = Set.empty): (Seq[String], Seq[String]) = {
 
     val backwardElems =
       if (direction.backward) backwardStatuses else Map()
     val forwardElems =
       if (direction.forward) forwardStatuses else Map()
 
-    (backwardElems.iterator.map((_, true)) ++ forwardElems.iterator.map((_, false)))
+    val baseErrors = (backwardElems.iterator.map((_, true)) ++ forwardElems.iterator.map((_, false)))
       .filter(!_._1._2.validated)
       .toVector
       .sortBy(_._1._1)
-      .collect {
-        case (((org, name), status), backward) =>
-          val direction = if (backward) "backward" else "forward"
-          s"$org:$name ($direction): ${status.message}"
-      }
+
+    def message(org: String, name: String, backward: Boolean, status: DependencyCheckReport.ModuleStatus): String = {
+      val direction = if (backward) "backward" else "forward"
+      s"$org:$name ($direction): ${status.message}"
+    }
+
+    val actualErrors = baseErrors.collect {
+      case ((orgName @ (org, name), status), backward) if !ignored(orgName) =>
+        message(org, name, backward, status)
+    }
+
+    val warnings = baseErrors.collect {
+      case ((orgName @ (org, name), status), backward) if ignored(orgName) =>
+        message(org, name, backward, status)
+    }
+
+    (warnings, actualErrors)
   }
 }
 
