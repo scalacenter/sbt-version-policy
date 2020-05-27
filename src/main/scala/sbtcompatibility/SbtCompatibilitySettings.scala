@@ -38,6 +38,7 @@ object SbtCompatibilitySettings {
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
     compatibilityReconciliations := Seq.empty,
+    compatibilityIgnored := Seq.empty,
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -144,15 +145,25 @@ object SbtCompatibilitySettings {
     },
     compatibilityReportDependencyIssues := {
       val log = streams.value.log
+      val sv = scalaVersion.value
+      val sbv = scalaBinaryVersion.value
       val direction = compatibilityCheckDirection.value
       val reports = compatibilityFindDependencyIssues.value
 
       if (reports.isEmpty)
         log.warn(s"No dependency check reports found (empty compatibilityPreviousArtifacts?).")
 
+      val ignored = compatibilityIgnored.value
+        .map { orgName =>
+          val mod = orgName % "foo"
+          val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
+          (mod.organization, name)
+        }
+        .toSet
+
       var anyError = false
       for ((previousModule, report) <- reports) {
-        val errors = report.errors(direction)
+        val (warnings, errors) = report.errors(direction, ignored)
         if (errors.nonEmpty) {
           anyError = true
           log.error(s"Incompatibilities with $previousModule")
