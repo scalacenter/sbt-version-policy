@@ -44,6 +44,7 @@ lazy val d = project
     ),
     compatibilityDefaultReconciliation := lmcoursier.definitions.Reconciliation.Strict,
     checkFails,
+    checkMimaPreviousArtifactsSet,
     version := "0.1.1"
   )
 
@@ -52,17 +53,28 @@ inThisBuild(List(
   organization := "io.github.alexarchambault.sbtcompatibility.test",
 ))
 
-lazy val shared = Def.settings(
-  compatibilityPreviousArtifacts := compatibilityAutoPreviousArtifacts.value
-)
-
 lazy val check = taskKey[Unit]("")
+
+lazy val shared = Def.settings(
+  compatibilityPreviousArtifacts := compatibilityAutoPreviousArtifacts.value,
+  check := {}
+)
 
 lazy val checkFails = Def.settings(
   check := {
+    check.value
     val direction = compatibilityCheckDirection.value
     val reports = compatibilityFindDependencyIssues.value
     val failed = reports.exists(!_._2.validated(direction))
     assert(failed, s"Expected a failed report in $reports")
+  }
+)
+
+lazy val checkMimaPreviousArtifactsSet = Def.settings(
+  check := {
+    check.value
+    val previousArtifacts = mimaPreviousArtifacts.value
+    val versions = previousArtifacts.map(_.revision)
+    assert(versions.nonEmpty, "No MiMa previous artifact found")
   }
 )
