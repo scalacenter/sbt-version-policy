@@ -10,8 +10,9 @@ trait SbtCompatibilityKeys {
   final val compatibilityReportDependencyIssues = taskKey[Unit]("")
   final val compatibilityCheck                  = taskKey[Unit]("Runs both compatibilityReportDependencyIssues and mimaReportBinaryIssues")
 
-  final val compatibilityReconciliations        = taskKey[Seq[(lmcoursier.definitions.ModuleMatchers, Reconciliation)]]("")
-  final val compatibilityCheckDirection         = taskKey[Direction]("")
+  final val compatibilityReconciliations         = taskKey[Seq[ModuleID]]("")
+  final val compatibilityDetailedReconciliations = taskKey[Seq[(lmcoursier.definitions.ModuleMatchers, Reconciliation)]]("")
+  final val compatibilityCheckDirection          = taskKey[Direction]("")
 
   final val compatibilityFindDependencyIssues = taskKey[Seq[(ModuleID, DependencyCheckReport)]]("")
 

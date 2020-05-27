@@ -3,12 +3,14 @@ package sbtcompatibility
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import sbt._
 
-object SbtCompatibility extends AutoPlugin {
+object SbtCompatibilityPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
   override def requires = MimaPlugin
 
-  object autoImport extends SbtCompatibilityKeys
+  object autoImport extends SbtCompatibilityKeys {
+    val Reconciliation = lmcoursier.definitions.Reconciliation
+  }
 
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
