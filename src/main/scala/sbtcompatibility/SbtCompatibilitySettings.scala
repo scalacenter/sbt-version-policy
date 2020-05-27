@@ -18,11 +18,15 @@ object SbtCompatibilitySettings {
 
   def updateSettings = Def.settings(
     compatibilityCsrConfiguration := csrConfiguration.value
+      // TODO Make that a method on CoursierConfiguration
       .withInterProjectDependencies(Vector.empty)
+      .withFallbackDependencies(Vector.empty)
       .withSbtScalaOrganization(None)
       .withSbtScalaVersion(None)
       .withSbtScalaJars(Vector.empty)
-      .withExcludeDependencies(Vector.empty),
+      .withExcludeDependencies(Vector.empty)
+      .withForceVersions(Vector.empty)
+      .withReconciliation(Vector.empty),
     compatibilityDependencyResolution := CoursierDependencyResolution(compatibilityCsrConfiguration.value),
     compatibilityUpdateConfiguration := updateConfiguration.value,
     compatibilityUnresolvedWarningConfiguration := unresolvedWarningConfiguration.in(update).value,
@@ -93,7 +97,7 @@ object SbtCompatibilitySettings {
       val warningConfig = compatibilityUnresolvedWarningConfiguration.value
 
       val reconciliations = {
-        val csrConfig = compatibilityCsrConfiguration.value
+        val csrConfig = csrConfiguration.value
         val useCsrConfigReconciliations = compatibilityUseCsrConfigReconciliations.value
         val ignoreSbtDefaultReconciliations = compatibilityIgnoreSbtDefaultReconciliations.value
 
