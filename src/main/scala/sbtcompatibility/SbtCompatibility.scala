@@ -8,7 +8,9 @@ object SbtCompatibility extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = MimaPlugin
 
-  object autoImport extends SbtCompatibilityKeys
+  object autoImport extends SbtCompatibilityKeys {
+    val Reconciliation = lmcoursier.definitions.Reconciliation
+  }
 
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
