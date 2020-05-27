@@ -126,6 +126,9 @@ object SbtCompatibilitySettings {
       val direction = compatibilityCheckDirection.value
       val reports = compatibilityFindDependencyIssues.value
 
+      if (reports.isEmpty)
+        log.warn(s"No dependency check reports found (empty compatibilityPreviousArtifacts?).")
+
       var anyError = false
       for ((previousModule, report) <- reports) {
         val errors = report.errors(direction)
