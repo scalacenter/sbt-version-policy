@@ -139,6 +139,10 @@ object SbtCompatibilitySettings {
 
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
+    },
+    compatibilityCheck := {
+      MimaPlugin.autoImport.mimaReportBinaryIssues.value
+      compatibilityReportDependencyIssues.value
     }
   )
 
