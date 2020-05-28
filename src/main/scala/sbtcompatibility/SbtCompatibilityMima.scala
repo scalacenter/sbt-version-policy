@@ -11,7 +11,7 @@ object SbtCompatibilityMima extends AutoPlugin {
 
   override def projectSettings = Def.settings(
     MimaPlugin.autoImport.mimaPreviousArtifacts := {
-      val projId = Keys.projectID.value
+      val projId = Keys.projectID.value.withExplicitArtifacts(Vector.empty)
       val versions = Version.latestCompatibleWith(sbt.Keys.version.value).toSet
       versions.map(version => projId.withRevision(version))
     }
