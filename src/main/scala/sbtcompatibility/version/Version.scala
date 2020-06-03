@@ -28,6 +28,8 @@ object Version {
       val stripped = version.takeWhile(_ != '+')
       if (tagPattern.findAllMatchIn(stripped).isEmpty)
         Some(stripped)
+          // assume versions like '0.0.0' aren't published
+          .filter(_.exists(c => c.isDigit && c != '0'))
       else
         previousStableVersion(stripped)
     } else
