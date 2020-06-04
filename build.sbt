@@ -13,22 +13,25 @@ inThisBuild(List(
   )
 ))
 
-sbtPlugin := true
-enablePlugins(ScriptedPlugin)
-scriptedLaunchOpts += "-Dplugin.version=" + version.value
-scriptedBufferLog := false
+lazy val `sbt-compatibility` = project
+  .enablePlugins(ScriptedPlugin)
+  .settings(
+    sbtPlugin := true,
+    scriptedLaunchOpts += "-Dplugin.version=" + version.value,
+    scriptedBufferLog := false,
+    sonatypeProfileName := "io.github.alexarchambault",
+    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0"),
+    libraryDependencies ++= Seq(
+      "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+    ),
+    libraryDependencies += "io.get-coursier" %% "versions" % "0.1.0",
+    libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % Test,
+    testFrameworks += new TestFramework("utest.runner.Framework")
+  )
 
-name := "sbt-compatibility"
-
-sonatypeProfileName := "io.github.alexarchambault"
-
-addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0")
-libraryDependencies ++= Seq(
-  "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
-  compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-)
-
-libraryDependencies += "io.get-coursier" %% "versions" % "0.1.0"
-
-libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % Test
-testFrameworks += new TestFramework("utest.runner.Framework")
+lazy val `sbt-eviction-warnings-dummy` = project
+  .in(file("target/dummy"))
+  .settings(
+    sonatypeProfileName := "io.github.alexarchambault"
+  )
