@@ -14,6 +14,7 @@ inThisBuild(List(
 ))
 
 lazy val `sbt-compatibility` = project
+  .in(file("."))
   .enablePlugins(ScriptedPlugin)
   .settings(
     sbtPlugin := true,
