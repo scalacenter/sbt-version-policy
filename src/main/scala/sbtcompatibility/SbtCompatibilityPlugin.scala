@@ -9,7 +9,7 @@ object SbtCompatibilityPlugin extends AutoPlugin {
   override def requires = MimaPlugin
 
   object autoImport extends SbtCompatibilityKeys {
-    val Reconciliation = lmcoursier.definitions.Reconciliation
+    val VersionCompatibility = coursier.version.VersionCompatibility
   }
 
   override def projectSettings =

@@ -1,8 +1,9 @@
 package sbtcompatibility
 
+import coursier.version.{ModuleMatchers, VersionCompatibility}
 import dataclass.data
-import lmcoursier.definitions._
-import sbtcompatibility.version.Version
+import lmcoursier.definitions.{ModuleMatchers => _, _}
+import sbtcompatibility.internal.Version
 
 @data class DependencyCheckReport(
   backwardStatuses: Map[(String, String), DependencyCheckReport.ModuleStatus],
@@ -51,10 +52,10 @@ object DependencyCheckReport {
   @data class SameVersion(version: String) extends ModuleStatus(true) {
     def message = s"same version: $version"
   }
-  @data class CompatibleVersion(version: String, previousVersion: String, reconciliation: Reconciliation) extends ModuleStatus(true) {
+  @data class CompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(true) {
     def message = s"compatible versions: $previousVersion -> $version ($reconciliation)"
   }
-  @data class IncompatibleVersion(version: String, previousVersion: String, reconciliation: Reconciliation) extends ModuleStatus(false) {
+  @data class IncompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(false) {
     def message = s"incompatible versions: $previousVersion -> $version ($reconciliation)"
   }
   @data class Missing(version: String) extends ModuleStatus(false) {
@@ -65,8 +66,8 @@ object DependencyCheckReport {
   def apply(
     currentModules: Map[(String, String), String],
     previousModules: Map[(String, String), String],
-    reconciliations: Seq[(sbtcompatibility.internal.ModuleMatchers, Reconciliation)],
-    defaultReconciliation: Reconciliation
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility
   ): DependencyCheckReport = {
 
     val backward = moduleStatuses(currentModules, previousModules, reconciliations, defaultReconciliation)
@@ -78,8 +79,8 @@ object DependencyCheckReport {
   def moduleStatuses(
     currentModules: Map[(String, String), String],
     previousModules: Map[(String, String), String],
-    reconciliations: Seq[(sbtcompatibility.internal.ModuleMatchers, Reconciliation)],
-    defaultReconciliation: Reconciliation
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility
   ): Map[(String, String), ModuleStatus] =
     for ((orgName @ (org, name), ver) <- previousModules) yield {
 
@@ -89,11 +90,11 @@ object DependencyCheckReport {
         case Some(currentVersion) =>
           val reconciliation = reconciliations
             .collectFirst {
-              case (matcher, rec) if matcher.matches(Module(Organization(org), ModuleName(name), Map())) =>
+              case (matcher, rec) if matcher.matches(org, name) =>
                 rec
             }
             .getOrElse(defaultReconciliation)
-          if (Version.compatible(reconciliation, ver, currentVersion))
+          if (reconciliation.isCompatible(ver, currentVersion))
             CompatibleVersion(currentVersion, ver, reconciliation)
           else
             IncompatibleVersion(currentVersion, ver, reconciliation)
