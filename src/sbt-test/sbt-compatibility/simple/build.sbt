@@ -58,7 +58,7 @@ lazy val d = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    compatibilityDefaultReconciliation := lmcoursier.definitions.Reconciliation.Strict,
+    compatibilityDefaultReconciliation := VersionCompatibility.Strict,
     checkFails,
     checkMimaPreviousArtifactsSet,
     version := "0.1.1"

@@ -1,13 +1,13 @@
 package sbtcompatibility
 
 import com.typesafe.tools.mima.plugin.MimaPlugin
+import coursier.version.{ModuleMatcher, ModuleMatchers, VersionCompatibility}
 import sbt.{Compile, Def}
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
-import sbtcompatibility.internal.DependencyCheck
-import sbtcompatibility.version.Version
+import sbtcompatibility.internal.{DependencyCheck, Version}
 
 import scala.util.Try
 
@@ -43,19 +43,16 @@ object SbtCompatibilitySettings {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
       compatibilityReconciliations.value.map { mod =>
-        import lmcoursier.definitions._
-        val rec = Reconciliation(mod.revision) match {
+        val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
         }
         val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
-        val matchers = ModuleMatchers.only(
-          Module(Organization(mod.organization), ModuleName(name), Map())
-        )
+        val matchers = ModuleMatchers.only(mod.organization, name)
         (matchers, rec)
       }
     },
-    compatibilityDefaultReconciliation := Reconciliation.SemVer
+    compatibilityDefaultReconciliation := VersionCompatibility.PackVer
   )
 
   def previousArtifactsSettings = Def.settings(
@@ -105,18 +102,35 @@ object SbtCompatibilitySettings {
         val fromCsrConfig =
           if (useCsrConfigReconciliations) {
             if (ignoreSbtDefaultReconciliations)
-              csrConfig.reconciliation.filter {
-                val default = sbt.coursierint.LMCoursier.relaxedForAllModules.toSet
-                rule => !default(rule)
-              }
+              csrConfig.reconciliation
+                .filter {
+                  val default = sbt.coursierint.LMCoursier.relaxedForAllModules.toSet
+                  rule => !default(rule)
+                }
             else
               csrConfig.reconciliation
           } else
             Nil
 
+        val fromCsrConfig0 = fromCsrConfig.map {
+          case (m, r) =>
+            val matcher = ModuleMatchers(
+              m.exclude.map(m => ModuleMatcher(m.organization.value, m.name.value, m.attributes)),
+              m.include.map(m => ModuleMatcher(m.organization.value, m.name.value, m.attributes)),
+              includeByDefault = m.includeByDefault
+            )
+            val compatibility = r match {
+              case Reconciliation.Default => VersionCompatibility.Default
+              case Reconciliation.Relaxed => VersionCompatibility.Always
+              case Reconciliation.SemVer  => VersionCompatibility.SemVer
+              case Reconciliation.Strict  => VersionCompatibility.Strict
+            }
+            (matcher, compatibility)
+        }
+
         val ours = compatibilityDetailedReconciliations.value
 
-        ours ++ fromCsrConfig
+        ours ++ fromCsrConfig0
       }
       val defaultReconciliation = compatibilityDefaultReconciliation.value
 

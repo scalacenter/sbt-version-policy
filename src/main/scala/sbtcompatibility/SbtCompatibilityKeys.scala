@@ -1,7 +1,7 @@
 package sbtcompatibility
 
+import coursier.version.{ModuleMatchers, VersionCompatibility}
 import lmcoursier.CoursierConfiguration
-import lmcoursier.definitions.Reconciliation
 import sbt._
 import sbt.librarymanagement.{DependencyResolution, ScalaModuleInfo, UpdateConfiguration, UnresolvedWarningConfiguration}
 import sbt.librarymanagement.DependencyBuilders.OrganizationArtifactName
@@ -13,7 +13,7 @@ trait SbtCompatibilityKeys {
 
   final val compatibilityReconciliations         = taskKey[Seq[ModuleID]]("")
   final val compatibilityIgnored                 = taskKey[Seq[OrganizationArtifactName]]("")
-  final val compatibilityDetailedReconciliations = taskKey[Seq[(lmcoursier.definitions.ModuleMatchers, Reconciliation)]]("")
+  final val compatibilityDetailedReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
   final val compatibilityCheckDirection          = taskKey[Direction]("")
 
   final val compatibilityFindDependencyIssues = taskKey[Seq[(ModuleID, DependencyCheckReport)]]("")
@@ -26,7 +26,7 @@ trait SbtCompatibilityKeys {
 
   final val compatibilityIgnoreSbtDefaultReconciliations = taskKey[Boolean]("")
   final val compatibilityUseCsrConfigReconciliations     = taskKey[Boolean]("")
-  final val compatibilityDefaultReconciliation           = taskKey[Reconciliation]("")
+  final val compatibilityDefaultReconciliation           = taskKey[VersionCompatibility]("")
 
   final val compatibilityAutoPreviousArtifacts     = taskKey[Seq[ModuleID]]("")
   final val compatibilityPreviousArtifactsFromMima = taskKey[Seq[ModuleID]]("")

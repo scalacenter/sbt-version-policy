@@ -1,6 +1,6 @@
 package sbtcompatibility.internal
 
-import lmcoursier.definitions.Reconciliation
+import coursier.version.{ModuleMatchers, VersionCompatibility}
 import sbt.Compile
 import sbt.librarymanagement.{ConfigurationReport, CrossVersion, ModuleID}
 import sbt.util.Logger
@@ -37,8 +37,8 @@ object DependencyCheck {
   def report(
     currentModules: Map[(String, String), String],
     previousModuleId: ModuleID,
-    reconciliations: Seq[(lmcoursier.definitions.ModuleMatchers, Reconciliation)],
-    defaultReconciliation: Reconciliation,
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility,
     sv: String,
     sbv: String,
     depRes: DependencyResolution,
@@ -74,7 +74,7 @@ object DependencyCheck {
     DependencyCheckReport(
       currentModules,
       previous,
-      reconciliations.map { case (m, r) => (sbtcompatibility.internal.ModuleMatchers(m), r) },
+      reconciliations,
       defaultReconciliation
     )
   }

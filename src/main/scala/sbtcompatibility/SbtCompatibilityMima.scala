@@ -2,7 +2,7 @@ package sbtcompatibility
 
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import sbt.{AutoPlugin, Def, Keys}
-import sbtcompatibility.version.Version
+import sbtcompatibility.internal.Version
 
 object SbtCompatibilityMima extends AutoPlugin {
 
