@@ -30,7 +30,7 @@ jobs:
         java-version: adopt@1.8.0-232
 
     - name: Run tests
-      run: csbt scripted
+      run: csbt test scripted
 
   publish:
     needs: test
