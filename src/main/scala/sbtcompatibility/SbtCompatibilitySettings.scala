@@ -33,7 +33,7 @@ object SbtCompatibilitySettings {
     compatibilityScalaModuleInfo := scalaModuleInfo.value
   )
 
-  def reconciliationSettings = Def.settings(
+  def reconciliationBuildSettings = Def.settings(
     compatibilityCheckDirection := Direction.backward,
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,

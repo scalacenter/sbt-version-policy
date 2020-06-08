@@ -22,9 +22,11 @@ object SbtCompatibilityPlugin extends AutoPlugin {
       SbtCompatibilityPlugin.mimaIgnoreVersion(version)
   }
 
+  override def buildSettings =
+    SbtCompatibilitySettings.reconciliationBuildSettings
+
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
-      SbtCompatibilitySettings.reconciliationSettings ++
       SbtCompatibilitySettings.previousArtifactsSettings ++
       SbtCompatibilitySettings.findIssuesSettings
 }
