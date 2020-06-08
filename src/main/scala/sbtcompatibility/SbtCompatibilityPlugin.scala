@@ -8,13 +8,25 @@ object SbtCompatibilityPlugin extends AutoPlugin {
   override def trigger = allRequirements
   override def requires = MimaPlugin
 
+  private def mimaIgnoreVersion(version: String): Seq[Def.Setting[_]] =
+    Def.settings(
+      MimaPlugin.autoImport.mimaPreviousArtifacts := {
+        val value = MimaPlugin.autoImport.mimaPreviousArtifacts.value
+        value.filter(_.revision != version)
+      }
+    )
+
   object autoImport extends SbtCompatibilityKeys {
     val VersionCompatibility = coursier.version.VersionCompatibility
+    def compatibilityIgnoreVersion(version: String): Seq[Def.Setting[_]] =
+      SbtCompatibilityPlugin.mimaIgnoreVersion(version)
   }
+
+  override def buildSettings =
+    SbtCompatibilitySettings.reconciliationBuildSettings
 
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
-      SbtCompatibilitySettings.reconciliationSettings ++
       SbtCompatibilitySettings.previousArtifactsSettings ++
       SbtCompatibilitySettings.findIssuesSettings
 }
