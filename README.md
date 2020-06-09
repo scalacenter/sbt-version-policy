@@ -60,3 +60,9 @@ The following compatility types are available:
 
 If no rule for a module is found in `compatibilityReconciliations`, `compatibilityDefaultReconciliation` is used
 as a compatibility type. It's default value is `VersionCompatibility.PackVer` (package versioning policy).
+
+## Acknowledgments
+
+<img src="https://scala.epfl.ch/resources/img/scala-center-swirl.png" width="40px" />
+
+*sbt-compatibility* is funded by the [Scala Center](https://scala.epfl.ch).
