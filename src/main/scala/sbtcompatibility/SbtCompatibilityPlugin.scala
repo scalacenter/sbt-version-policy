@@ -27,6 +27,7 @@ object SbtCompatibilityPlugin extends AutoPlugin {
 
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
+      SbtCompatibilitySettings.reconciliationSettings ++
       SbtCompatibilitySettings.previousArtifactsSettings ++
       SbtCompatibilitySettings.findIssuesSettings
 }

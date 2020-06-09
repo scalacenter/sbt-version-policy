@@ -39,6 +39,10 @@ object SbtCompatibilitySettings {
     compatibilityUseCsrConfigReconciliations := true,
     compatibilityReconciliations := Seq.empty,
     compatibilityIgnored := Seq.empty,
+    compatibilityDefaultReconciliation := VersionCompatibility.PackVer
+  )
+
+  def reconciliationSettings = Def.settings(
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -51,8 +55,7 @@ object SbtCompatibilitySettings {
         val matchers = ModuleMatchers.only(mod.organization, name)
         (matchers, rec)
       }
-    },
-    compatibilityDefaultReconciliation := VersionCompatibility.PackVer
+    }
   )
 
   def previousArtifactsSettings = Def.settings(
