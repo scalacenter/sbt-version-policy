@@ -15,6 +15,7 @@ inThisBuild(List(
 
 lazy val `sbt-compatibility` = project
   .in(file("."))
+  .aggregate(`sbt-compatibility-dummy`)
   .enablePlugins(ScriptedPlugin)
   .settings(
     sbtPlugin := true,
@@ -31,7 +32,7 @@ lazy val `sbt-compatibility` = project
     testFrameworks += new TestFramework("utest.runner.Framework")
   )
 
-lazy val `sbt-eviction-warnings-dummy` = project
+lazy val `sbt-compatibility-dummy` = project
   .in(file("target/dummy"))
   .settings(
     sonatypeProfileName := "io.github.alexarchambault"
