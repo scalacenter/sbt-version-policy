@@ -78,6 +78,28 @@ lazy val e = project
     version := "0.1.1"
   )
 
+lazy val f = project
+  .settings(
+    shared,
+    name := "simple-test",
+    libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless" % "2.3.3"
+    ),
+    compatibilityReconciliations += "com.chuusai" %% "shapeless" % "strict",
+    version := "0.1.1"
+  )
+
+lazy val g = project
+  .settings(
+    shared,
+    name := "simple-test",
+    libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless" % "2.3.3"
+    ),
+    compatibilityReconciliations += "com.chuusai" %% "shapeless" % "pvp",
+    version := "0.1.1"
+  )
+
 inThisBuild(List(
   scalaVersion := "2.12.11",
   organization := "io.github.alexarchambault.sbtcompatibility.test",
