@@ -45,11 +45,11 @@ The previously compatible version is computed from `version` the following way:
 
 By default, `compatibilityPreviousArtifacts` relies on `mimaPreviousArtifacts` from sbt-mima, so that only setting / changing `mimaPreviousArtifacts` is enough for both sbt-mima and sbt-compatibility.
 
-## `compatibilityReconciliations`
+## `compatibilityRules`
 
-`compatibilityReconciliations` allows to specify whether some version bumps are allowed or not, like
+`compatibilityRules` allows to specify whether some version bumps are allowed or not, like
 ```scala
-compatibilityReconciliations += "org.scala-lang.modules" %% "scala-xml" % "semver"
+compatibilityRules += "org.scala-lang.modules" %% "scala-xml" % "semver"
 ```
 
 The following compatility types are available:
@@ -58,7 +58,7 @@ The following compatility types are available:
 - `always`: assumes all versions of the matched modules are compatible with each other,
 - `strict`: requires exact matches between the wanted and the selected versions of the matched modules.
 
-If no rule for a module is found in `compatibilityReconciliations`, `compatibilityDefaultReconciliation` is used
+If no rule for a module is found in `compatibilityRules`, `compatibilityDefaultReconciliation` is used
 as a compatibility type. It's default value is `VersionCompatibility.PackVer` (package versioning policy).
 
 ## Acknowledgments

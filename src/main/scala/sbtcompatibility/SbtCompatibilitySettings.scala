@@ -37,7 +37,7 @@ object SbtCompatibilitySettings {
     compatibilityCheckDirection := Direction.backward,
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
-    compatibilityReconciliations := Seq.empty,
+    compatibilityRules := Seq.empty,
     compatibilityIgnored := Seq.empty,
     compatibilityDefaultReconciliation := VersionCompatibility.PackVer
   )
@@ -46,7 +46,7 @@ object SbtCompatibilitySettings {
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      compatibilityReconciliations.value.map { mod =>
+      compatibilityRules.value.map { mod =>
         val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
