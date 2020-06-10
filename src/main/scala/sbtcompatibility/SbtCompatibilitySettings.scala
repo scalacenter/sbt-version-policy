@@ -15,6 +15,7 @@ object SbtCompatibilitySettings {
 
   private val keys: SbtCompatibilityKeys = new SbtCompatibilityKeys {}
   import keys._
+  import keys.compatibilityInternal._
 
   def updateSettings = Def.settings(
     compatibilityCsrConfiguration := csrConfiguration.value
