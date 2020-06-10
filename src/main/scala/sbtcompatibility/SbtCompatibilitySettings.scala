@@ -2,7 +2,7 @@ package sbtcompatibility
 
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import coursier.version.{ModuleMatcher, ModuleMatchers, VersionCompatibility}
-import sbt.{Compile, Def}
+import sbt._
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
@@ -34,16 +34,47 @@ object SbtCompatibilitySettings {
     compatibilityScalaModuleInfo := scalaModuleInfo.value
   )
 
+  // Trying to mimick the current default behavior of evicted in sbt, that is
+  // - assume scala libraries follow PVP,
+  // - assume Java libraries follow semver.
+  private def defaultRules = Seq(
+    ("*" % "*" % "pvp").cross(CrossVersion.full),
+    "*" %% "*" % "pvp",
+    "*" % "*" % "semver"
+  )
+
   def reconciliationBuildSettings = Def.settings(
     compatibilityCheckDirection := Direction.backward,
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
     compatibilityRules := Seq.empty,
+    compatibilityDefaultRules := defaultRules,
     compatibilityIgnored := Seq.empty,
-    compatibilityDefaultReconciliation := VersionCompatibility.PackVer
+    compatibilityDefaultReconciliation := None
   )
 
   def reconciliationSettings = Def.settings(
+    compatibilityFallbackReconciliations := {
+      val sv = scalaVersion.value
+      val sbv = scalaBinaryVersion.value
+      val defaultReconciliationOpt = compatibilityDefaultReconciliation.value
+      val (fallbackRules, fallbackMatchers) = {
+        val rules: Seq[ModuleID] = compatibilityDefaultRules.value
+        defaultReconciliationOpt match {
+          case None => (rules, Nil)
+          case Some(default) => (Nil, Seq(ModuleMatchers.all -> default))
+        }
+      }
+      fallbackRules.map { mod =>
+        val rec = VersionCompatibility(mod.revision) match {
+          case Some(r) => r
+          case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
+        }
+        val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
+        val matchers = ModuleMatchers.only(mod.organization, name)
+        (matchers, rec)
+      } ++ fallbackMatchers
+    },
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -133,10 +164,10 @@ object SbtCompatibilitySettings {
         }
 
         val ours = compatibilityDetailedReconciliations.value
+        val fallback = compatibilityFallbackReconciliations.value
 
-        ours ++ fromCsrConfig0
+        ours ++ fromCsrConfig0 ++ fallback
       }
-      val defaultReconciliation = compatibilityDefaultReconciliation.value
 
       val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
@@ -148,7 +179,7 @@ object SbtCompatibilitySettings {
           currentModules,
           previousModuleId,
           reconciliations,
-          defaultReconciliation,
+          VersionCompatibility.Strict,
           sv,
           sbv,
           depRes,

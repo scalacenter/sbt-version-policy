@@ -18,4 +18,7 @@ trait SbtCompatibilityInternalKeys {
   final val compatibilityAutoPreviousArtifacts     = taskKey[Seq[ModuleID]]("")
   final val compatibilityPreviousArtifactsFromMima = taskKey[Seq[ModuleID]]("")
   final val compatibilityPreviousVersions          = taskKey[Seq[String]]("")
+
+  final val compatibilityDetailedReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
+  final val compatibilityFallbackReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
 }

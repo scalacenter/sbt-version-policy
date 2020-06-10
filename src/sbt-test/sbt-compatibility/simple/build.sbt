@@ -58,7 +58,7 @@ lazy val d = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    compatibilityDefaultReconciliation := VersionCompatibility.Strict,
+    compatibilityDefaultReconciliation := Some(VersionCompatibility.Strict),
     checkFails,
     checkMimaPreviousArtifactsSet,
     version := "0.1.1"
@@ -108,7 +108,6 @@ inThisBuild(List(
 lazy val check = taskKey[Unit]("")
 
 lazy val shared = Def.settings(
-  compatibilityPreviousArtifacts := compatibilityAutoPreviousArtifacts.value,
   check := {}
 )
 
