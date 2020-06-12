@@ -27,7 +27,7 @@ lazy val `sbt-compatibility` = project
       "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     ),
-    libraryDependencies += "io.get-coursier" %% "versions" % "0.2.0",
+    libraryDependencies += "io.get-coursier" %% "versions" % "0.2.1",
     libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % Test,
     testFrameworks += new TestFramework("utest.runner.Framework")
   )
