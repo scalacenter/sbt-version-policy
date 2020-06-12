@@ -27,7 +27,7 @@ import sbtcompatibility.internal.Version
 
     def message(org: String, name: String, backward: Boolean, status: DependencyCheckReport.ModuleStatus): String = {
       val direction = if (backward) "backward" else "forward"
-      s"$org:$name ($direction): ${status.message}"
+      s"$org:$name: ${status.message}"
     }
 
     val actualErrors = baseErrors.collect {
@@ -50,16 +50,16 @@ object DependencyCheckReport {
     def message: String
   }
   @data class SameVersion(version: String) extends ModuleStatus(true) {
-    def message = s"same version: $version"
+    def message = s"found same version $version"
   }
   @data class CompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(true) {
-    def message = s"compatible versions: $previousVersion -> $version ($reconciliation)"
+    def message = s"compatible version change from $previousVersion to $version (compatibility: ${reconciliation.name})"
   }
   @data class IncompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(false) {
-    def message = s"incompatible versions: $previousVersion -> $version ($reconciliation)"
+    def message = s"incompatible version change from $previousVersion to $version (compatibility: ${reconciliation.name})"
   }
   @data class Missing(version: String) extends ModuleStatus(false) {
-    def message = s"missing (former version: $version)"
+    def message = "missing dependency"
   }
 
 
