@@ -1,6 +1,6 @@
 
 inThisBuild(List(
-  organization := "io.github.alexarchambault.sbt",
+  organization := "ch.epfl.scala",
   homepage := Some(url("https://github.com/scalacenter/sbt-compatibility")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
@@ -21,7 +21,6 @@ lazy val `sbt-compatibility` = project
     sbtPlugin := true,
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
-    sonatypeProfileName := "io.github.alexarchambault",
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0"),
     libraryDependencies ++= Seq(
       "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
@@ -34,6 +33,3 @@ lazy val `sbt-compatibility` = project
 
 lazy val `sbt-compatibility-dummy` = project
   .in(file("target/dummy"))
-  .settings(
-    sonatypeProfileName := "io.github.alexarchambault"
-  )
