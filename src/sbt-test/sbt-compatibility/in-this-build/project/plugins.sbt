@@ -1,1 +1,1 @@
-addSbtPlugin("io.github.alexarchambault.sbt" % "sbt-compatibility" % sys.props("plugin.version"))
+addSbtPlugin("ch.epfl.scala" % "sbt-compatibility" % sys.props("plugin.version"))
