@@ -13,7 +13,14 @@ object SbtCompatibilityMima extends AutoPlugin {
     MimaPlugin.autoImport.mimaPreviousArtifacts := {
       val projId = Keys.projectID.value.withExplicitArtifacts(Vector.empty)
       val versions = Version.latestCompatibleWith(sbt.Keys.version.value).toSet
-      versions.map(version => projId.withRevision(version))
+      versions.map { version =>
+        projId
+          .withExtraAttributes {
+            projId.extraAttributes
+              .filter(!_._1.stripPrefix("e:").startsWith("info."))
+          }
+          .withRevision(version)
+      }
     }
   )
 
