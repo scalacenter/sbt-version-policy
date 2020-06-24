@@ -1,0 +1,30 @@
+> v0-1-0/publishLocal
+
+# OK to introduce source or binary incompatibilities as long
+# as first revision number is 0
+> v0-1-1/compatibilityCheck
+> v0-1-1/publishLocal
+
+> v0-2-0/compatibilityCheck
+> v0-2-0/publishLocal
+
+# New major version always succeeds
+> v1-0-0/compatibilityCheck
+> v1-0-0/publishLocal
+
+# OK to apply backward binary compatible changes
+> v1-0-1/compatibilityCheck
+> v1-0-1/publishLocal
+
+# Unable to apply source incompatible changes between
+# two patch versions
+-> v1-0-2/compatibilityCheck
+# OK between minor versions
+> v1-1-0/compatibilityCheck
+> v1-1-0/publishLocal
+
+# Unable to apply binary incompatible changes between
+# two minor versions
+-> v1-2-0/compatibilityCheck
+# OK between major versions
+> v2-0-0/compatibilityCheck
