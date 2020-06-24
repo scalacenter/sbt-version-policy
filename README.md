@@ -8,9 +8,9 @@
 
 Add to your `project/plugins.sbt`:
 ```scala
-addSbtPlugin("io.github.alexarchambault.sbt" % "sbt-compatibility" % "0.0.4")
+addSbtPlugin("ch.epfl.scala" % "sbt-compatibility" % "0.0.9")
 ```
-The latest version is [![Maven Central](https://img.shields.io/maven-central/v/io.github.alexarchambault.sbt/sbt-compatibility-dummy_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.alexarchambault.sbt/sbt-compatibility-dummy_2.12).
+The latest version is [![Maven Central](https://img.shields.io/maven-central/v/ch.epfl.scala/sbt-compatibility-dummy_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-compatibility-dummy_2.12).
 
 sbt-compatibility depends on [sbt-mima](https://github.com/lightbend/mima), so that you don't need to explicitly
 depend on it.
