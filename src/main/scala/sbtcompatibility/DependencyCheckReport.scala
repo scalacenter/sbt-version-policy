@@ -3,7 +3,6 @@ package sbtcompatibility
 import coursier.version.{ModuleMatchers, VersionCompatibility}
 import dataclass.data
 import lmcoursier.definitions.{ModuleMatchers => _, _}
-import sbtcompatibility.internal.Version
 
 @data class DependencyCheckReport(
   backwardStatuses: Map[(String, String), DependencyCheckReport.ModuleStatus],
