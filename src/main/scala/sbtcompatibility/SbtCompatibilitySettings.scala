@@ -7,7 +7,7 @@ import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
-import sbtcompatibility.internal.{DependencyCheck, Version}
+import sbtcompatibility.internal.DependencyCheck
 
 import scala.util.Try
 
@@ -108,7 +108,7 @@ object SbtCompatibilitySettings {
         projId.withRevision(version)
       }
     },
-    compatibilityPreviousVersions := Version.latestCompatibleWith(sbt.Keys.version.value).toSeq,
+    compatibilityPreviousVersions := coursier.version.Previous.previousStableVersion(sbt.Keys.version.value).toSeq,
 
     compatibilityPreviousArtifacts := compatibilityPreviousArtifactsFromMima.value
   )
