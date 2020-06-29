@@ -75,10 +75,13 @@ object SbtCompatibilityMima extends AutoPlugin {
       val ver = Keys.version.value
       val firstOpt = firstVersion.value
       previousVersionOpt.value match {
-        case Some(v) => Seq(v)
+        case Some(v) =>
+          val firstVersionCheck = firstOpt.forall(first => Version(first).compareTo(Version(v)) <= 0)
+          if (firstVersionCheck) Seq(v)
+          else Nil
         case None =>
           if (firstOpt.nonEmpty)
-            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set set previousVersions or unset firstVersion.""")
+            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set previousVersions or unset firstVersion.""")
           Nil
       }
     },
