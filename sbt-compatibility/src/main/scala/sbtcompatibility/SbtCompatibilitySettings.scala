@@ -1,13 +1,13 @@
 package sbtcompatibility
 
-import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.{MimaPlugin, SbtMima}
 import coursier.version.{ModuleMatcher, ModuleMatchers, VersionCompatibility}
 import sbt._
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
-import sbtcompatibility.internal.DependencyCheck
+import sbtcompatibility.internal.{DependencyCheck, MimaIssues}
 import sbtcompatibilityrules.SbtCompatibilityRulesPlugin
 
 import scala.util.Try
@@ -227,6 +227,24 @@ object SbtCompatibilitySettings {
     compatibilityCheck := {
       MimaPlugin.autoImport.mimaReportBinaryIssues.value
       compatibilityReportDependencyIssues.value
+    },
+    forwardCompatibilityCheck := {
+      import MimaPlugin.autoImport._
+      val it = MimaIssues.forwardBinaryIssuesIterator.value
+      it.foreach {
+        case (moduleId, problems) =>
+          SbtMima.reportModuleErrors(
+            moduleId,
+            problems._1,
+            problems._2,
+            true,
+            mimaBinaryIssueFilters.value,
+            mimaBackwardIssueFilters.value,
+            mimaForwardIssueFilters.value,
+            new MimaIssues.SbtLogger(Keys.streams.value.log),
+            name.value,
+          )
+      }
     }
   )
 

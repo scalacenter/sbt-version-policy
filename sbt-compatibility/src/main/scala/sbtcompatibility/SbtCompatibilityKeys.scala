@@ -9,6 +9,7 @@ trait SbtCompatibilityKeys {
   final val compatibilityPreviousArtifacts      = taskKey[Seq[ModuleID]]("")
   final val compatibilityReportDependencyIssues = taskKey[Unit]("")
   final val compatibilityCheck                  = taskKey[Unit]("Runs both compatibilityReportDependencyIssues and mimaReportBinaryIssues")
+  final val forwardCompatibilityCheck           = taskKey[Unit]("")
 
   @deprecated("Use compatibilityRules instead", "0.0.8")
   final def compatibilityReconciliations         = SbtCompatibilityRulesPlugin.autoImport.compatibilityRules
