@@ -1,12 +1,22 @@
 > v0-1-0/publishLocal
 > reload
 
-# NOT OK to introduce source or binary incompatibilities
-# during 0.1.x
--> v0-1-1/compatibilityCheck
+# OK to introduce a non-breaking change during 0.1.x
+> v0-1-1/compatibilityCheck
 > v0-1-1/publishLocal
 > reload
 
+# OK to introduce a source incompatibility during 0.1.x
+> v0-1-2/compatibilityCheck
+> v0-1-2/publishLocal
+> reload
+
+# NOT OK to introduce binary incompatibilities
+# during 0.1.x
+-> v0-1-3/compatibilityCheck
+> reload
+
+# But OK to introduce binary incompatibilities in 0.2.x
 > v0-2-0/compatibilityCheck
 > v0-2-0/publishLocal
 > reload
@@ -24,7 +34,6 @@
 # Unable to apply source incompatible changes between
 # two patch versions
 -> v1-0-2/compatibilityCheck
-> v1-0-2/publishLocal
 > reload
 
 # OK between minor versions

@@ -6,6 +6,6 @@ trait Foo {
     x
   }
 
-  def quux: Int
+  def quux: Int = 0
 
 }

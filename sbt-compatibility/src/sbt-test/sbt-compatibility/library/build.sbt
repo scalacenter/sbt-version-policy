@@ -10,6 +10,18 @@ val `v0-1-1` =
     version := "0.1.1"
   )
 
+val `v0-1-2` =
+  project.settings(
+    name := "library-test",
+    version := "0.1.2"
+  )
+
+val `v0-1-3` =
+  project.settings(
+    name := "library-test",
+    version := "0.1.3"
+  )
+
 val `v0-2-0` =
   project.settings(
     name := "library-test",
