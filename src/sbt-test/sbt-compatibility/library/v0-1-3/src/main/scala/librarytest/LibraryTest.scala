@@ -7,6 +7,6 @@ trait Foo {
     x
   }
 
-  def baz: Int
+  def baz: Int = 0
 
 }
