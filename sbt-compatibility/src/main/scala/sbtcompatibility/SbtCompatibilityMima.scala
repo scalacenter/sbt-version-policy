@@ -16,8 +16,8 @@ object SbtCompatibilityMima extends AutoPlugin {
   override def requires = MimaPlugin
 
   object autoImport {
-    val previousVersions = settingKey[Seq[String]]("")
-    val firstVersion = settingKey[Option[String]]("")
+    val previousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
+    val firstVersion = settingKey[Option[String]]("First version this module was published for.")
   }
 
   import autoImport._
