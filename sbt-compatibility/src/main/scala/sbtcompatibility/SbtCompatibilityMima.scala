@@ -17,7 +17,7 @@ object SbtCompatibilityMima extends AutoPlugin {
 
   object autoImport {
     val previousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
-    val firstVersion = settingKey[Option[String]]("First version this module was published for.")
+    val addedIn = settingKey[Option[String]]("First version this module was or will be published for.")
   }
 
   import autoImport._
@@ -73,7 +73,7 @@ object SbtCompatibilityMima extends AutoPlugin {
   override def projectSettings = Def.settings(
     previousVersions := {
       val ver = Keys.version.value
-      val firstOpt = firstVersion.value
+      val firstOpt = addedIn.value
       previousVersionOpt.value match {
         case Some(v) =>
           val firstVersionCheck = firstOpt.forall(first => Version(first).compareTo(Version(v)) <= 0)
@@ -81,11 +81,11 @@ object SbtCompatibilityMima extends AutoPlugin {
           else Nil
         case None =>
           if (firstOpt.nonEmpty)
-            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set previousVersions or unset firstVersion.""")
+            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set previousVersions or unset addedIn.""")
           Nil
       }
     },
-    firstVersion := None,
+    addedIn := None,
     MimaPlugin.autoImport.mimaPreviousArtifacts := {
       val projId = Keys.projectID.value.withExplicitArtifacts(Vector.empty)
       val previousVersions0 = previousVersions.value

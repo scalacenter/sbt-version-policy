@@ -2,7 +2,7 @@
 lazy val a = project
   .settings(
     version := "0.1.1-SNAPSHOT",
-    firstVersion := Some("0.1.1"),
+    addedIn := Some("0.1.1"),
     check := {
       val prev = previousVersions.value
       val expected = Seq()
@@ -13,7 +13,7 @@ lazy val a = project
 lazy val b = project
   .settings(
     version := "0.1.1-SNAPSHOT",
-    firstVersion := Some("0.1.0"),
+    addedIn := Some("0.1.0"),
     check := {
       val prev = previousVersions.value
       val expected = Seq("0.1.0")
