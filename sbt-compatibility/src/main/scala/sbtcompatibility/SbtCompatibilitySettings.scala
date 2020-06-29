@@ -8,6 +8,7 @@ import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
 import sbtcompatibility.internal.DependencyCheck
+import sbtcompatibilityrules.SbtCompatibilityRulesPlugin
 
 import scala.util.Try
 
@@ -47,7 +48,6 @@ object SbtCompatibilitySettings {
     compatibilityCheckDirection := Direction.backward,
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
-    compatibilityRules := Seq.empty,
     compatibilityDefaultRules := defaultRules,
     compatibilityIgnored := Seq.empty,
     compatibilityDefaultReconciliation := None
@@ -78,7 +78,7 @@ object SbtCompatibilitySettings {
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      compatibilityRules.value.map { mod =>
+      SbtCompatibilityRulesPlugin.autoImport.compatibilityRules.value.map { mod =>
         val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
