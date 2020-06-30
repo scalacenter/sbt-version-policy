@@ -13,9 +13,13 @@ inThisBuild(List(
   )
 ))
 
+lazy val `sbt-compatibility-rules` = project
+  .settings(
+    sbtPlugin := true
+  )
+
 lazy val `sbt-compatibility` = project
-  .in(file("."))
-  .aggregate(`sbt-compatibility-dummy`)
+  .dependsOn(`sbt-compatibility-rules`)
   .enablePlugins(ScriptedPlugin)
   .settings(
     sbtPlugin := true,
@@ -29,8 +33,12 @@ lazy val `sbt-compatibility` = project
     libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "0.0.22",
       "io.get-coursier" %% "versions" % "0.2.2"
-    )
+    ),
+    scriptedDependencies := {
+      scriptedDependencies.value
+      publishLocal.in(`sbt-compatibility-rules`).value
+    }
   )
 
 lazy val `sbt-compatibility-dummy` = project
-  .in(file("target/dummy"))
+  .in(file("sbt-compatibility/target/dummy"))
