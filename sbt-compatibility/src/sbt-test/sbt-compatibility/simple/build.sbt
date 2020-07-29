@@ -85,7 +85,7 @@ lazy val f = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    compatibilityRules += "com.chuusai" %% "shapeless" % "strict",
+    dependencyCompatibilityRules += "com.chuusai" %% "shapeless" % "strict",
     version := "0.1.1"
   )
 
@@ -96,7 +96,7 @@ lazy val g = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    compatibilityRules += "com.chuusai" %% "shapeless" % "pvp",
+    dependencyCompatibilityRules += "com.chuusai" %% "shapeless" % "pvp",
     version := "0.1.1"
   )
 

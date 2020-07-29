@@ -19,6 +19,6 @@ lazy val b = project
 inThisBuild(List(
   scalaVersion := "2.12.11",
   organization := "io.github.alexarchambault.sbtcompatibility.test2",
-  compatibilityRules += "org.scala-lang.modules" %% "scala-xml" % "semver"
+  dependencyCompatibilityRules += "org.scala-lang.modules" %% "scala-xml" % "semver"
 ))
 

@@ -7,9 +7,11 @@
 ## How to use
 
 Add to your `project/plugins.sbt`:
+
 ```scala
 addSbtPlugin("ch.epfl.scala" % "sbt-compatibility" % "0.0.9")
 ```
+
 The latest version is [![Maven Central](https://img.shields.io/maven-central/v/ch.epfl.scala/sbt-compatibility-dummy_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-compatibility-dummy_2.12).
 
 sbt-compatibility depends on [sbt-mima](https://github.com/lightbend/mima), so that you don't need to explicitly
@@ -45,11 +47,12 @@ The previously compatible version is computed from `version` the following way:
 
 By default, `compatibilityPreviousArtifacts` relies on `mimaPreviousArtifacts` from sbt-mima, so that only setting / changing `mimaPreviousArtifacts` is enough for both sbt-mima and sbt-compatibility.
 
-## `compatibilityRules`
+## Dependency compatibility adjustments
 
-`compatibilityRules` allows to specify whether some version bumps are allowed or not, like
+Set `dependencyCompatibilityRules` to specify whether library dependency upgrades are compatible or not. For instance:
+
 ```scala
-compatibilityRules += "org.scala-lang.modules" %% "scala-xml" % "semver"
+dependencyCompatibilityRules += "org.scala-lang" % "scala-compiler" % "strict"
 ```
 
 The following compatility types are available:
@@ -58,8 +61,8 @@ The following compatility types are available:
 - `always`: assumes all versions of the matched modules are compatible with each other,
 - `strict`: requires exact matches between the wanted and the selected versions of the matched modules.
 
-If no rule for a module is found in `compatibilityRules`, `compatibilityDefaultReconciliation` is used
-as a compatibility type. It's default value is `VersionCompatibility.PackVer` (package versioning policy).
+If no rule for a module is found in `dependencyCompatibilityRules`, `compatibilityDefaultReconciliation` is used
+as a compatibility type. Its default value is `VersionCompatibility.PackVer` (package versioning policy).
 
 ## Acknowledgments
 
