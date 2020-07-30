@@ -22,8 +22,8 @@ object SbtCompatibilityPlugin extends AutoPlugin {
       SbtCompatibilityPlugin.mimaIgnoreVersion(version)
   }
 
-  override def buildSettings =
-    SbtCompatibilitySettings.reconciliationBuildSettings
+  override def globalSettings =
+    SbtCompatibilitySettings.reconciliationGlobalSettings
 
   override def projectSettings =
     SbtCompatibilitySettings.updateSettings ++
