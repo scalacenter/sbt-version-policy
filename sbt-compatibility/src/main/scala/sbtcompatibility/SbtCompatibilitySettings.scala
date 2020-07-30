@@ -9,7 +9,7 @@ import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
 import sbtcompatibility.internal.{DependencyCheck, MimaIssues}
 import sbtcompatibilityrules.SbtCompatibilityRulesPlugin
-import SbtCompatibilityRulesPlugin.autoImport.dependencyCompatibilityRules
+import SbtCompatibilityRulesPlugin.autoImport.compatibilityDependencyRules
 
 import scala.util.Try
 
@@ -79,7 +79,7 @@ object SbtCompatibilitySettings {
     compatibilityDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      dependencyCompatibilityRules.value.map { mod =>
+      compatibilityDependencyRules.value.map { mod =>
         val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
