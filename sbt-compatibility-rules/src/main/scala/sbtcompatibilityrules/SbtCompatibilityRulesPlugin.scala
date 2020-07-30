@@ -7,7 +7,7 @@ object SbtCompatibilityRulesPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   object autoImport {
-    val compatibilityDependencyRules = taskKey[Seq[ModuleID]]("""Compatibility rules for the library dependencies (e.g. "org.scala-lang" % "scala-compiler" % "strict")""")
+    val compatibilityDependencyRules = settingKey[Seq[ModuleID]]("""Compatibility rules for the library dependencies (e.g. "org.scala-lang" % "scala-compiler" % "strict")""")
   }
   import autoImport._
 

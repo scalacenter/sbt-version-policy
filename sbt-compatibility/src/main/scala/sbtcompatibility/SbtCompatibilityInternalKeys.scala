@@ -12,8 +12,8 @@ trait SbtCompatibilityInternalKeys {
   final val compatibilityUnresolvedWarningConfiguration = taskKey[UnresolvedWarningConfiguration]("")
   final val compatibilityScalaModuleInfo                = taskKey[Option[ScalaModuleInfo]]("")
 
-  final val compatibilityIgnoreSbtDefaultReconciliations = taskKey[Boolean]("")
-  final val compatibilityUseCsrConfigReconciliations     = taskKey[Boolean]("")
+  final val compatibilityIgnoreSbtDefaultReconciliations = settingKey[Boolean]("")
+  final val compatibilityUseCsrConfigReconciliations     = settingKey[Boolean]("")
 
   final val compatibilityAutoPreviousArtifacts     = taskKey[Seq[ModuleID]]("")
   final val compatibilityPreviousArtifactsFromMima = taskKey[Seq[ModuleID]]("")
