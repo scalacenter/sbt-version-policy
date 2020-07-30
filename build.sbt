@@ -1,7 +1,7 @@
 
 inThisBuild(List(
   organization := "ch.epfl.scala",
-  homepage := Some(url("https://github.com/scalacenter/sbt-compatibility")),
+  homepage := Some(url("https://github.com/scalacenter/sbt-version-policy")),
   licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(
     Developer(
@@ -14,17 +14,17 @@ inThisBuild(List(
 ))
 
 lazy val root = (project in file("."))
-  .aggregate(`sbt-compatibility-rules`, `sbt-compatibility`)
+  .aggregate(`sbt-version-policy-rules`, `sbt-version-policy`)
   .settings(
-    name := "sbt compatiblity root",
+    name := "sbt-version-policy root",
     publish / skip := true,
   )
 
-lazy val `sbt-compatibility-rules` = project
+lazy val `sbt-version-policy-rules` = project
   .enablePlugins(SbtPlugin)
 
-lazy val `sbt-compatibility` = project
-  .dependsOn(`sbt-compatibility-rules`)
+lazy val `sbt-version-policy` = project
+  .dependsOn(`sbt-version-policy-rules`)
   .enablePlugins(SbtPlugin)
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
@@ -40,9 +40,9 @@ lazy val `sbt-compatibility` = project
     ),
     scriptedDependencies := {
       scriptedDependencies.value
-      publishLocal.in(`sbt-compatibility-rules`).value
+      publishLocal.in(`sbt-version-policy-rules`).value
     }
   )
 
-lazy val `sbt-compatibility-dummy` = project
-  .in(file("sbt-compatibility/target/dummy"))
+lazy val `sbt-version-policy-dummy` = project
+  .in(file("sbt-version-policy/target/dummy"))

@@ -1,0 +1,4 @@
+> core/versionPolicyReportDependencyIssues
+> core/mimaFindBinaryIssues
+-> core/mimaReportBinaryIssues
+-> core/versionPolicyCheck
