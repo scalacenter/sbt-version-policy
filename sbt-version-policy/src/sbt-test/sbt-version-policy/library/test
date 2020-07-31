@@ -33,7 +33,7 @@
 
 # Unable to apply source incompatible changes between
 # two patch versions
--> v1-0-2/versionPolicyForwardCheck
+-> v1-0-2/versionPolicyCheck
 > reload
 
 # OK between minor versions
