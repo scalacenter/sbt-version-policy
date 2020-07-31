@@ -45,7 +45,7 @@ object SbtCompatibilitySettings {
     "*" % "*" % "semver"
   )
 
-  def reconciliationBuildSettings = Def.settings(
+  def reconciliationGlobalSettings = Def.settings(
     compatibilityCheckDirection := Direction.backward,
     compatibilityIgnoreSbtDefaultReconciliations := true,
     compatibilityUseCsrConfigReconciliations := true,
