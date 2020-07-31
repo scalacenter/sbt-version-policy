@@ -13,16 +13,20 @@ inThisBuild(List(
   )
 ))
 
-lazy val `sbt-compatibility-rules` = project
+lazy val root = (project in file("."))
+  .aggregate(`sbt-compatibility-rules`, `sbt-compatibility`)
   .settings(
-    sbtPlugin := true
+    name := "sbt compatiblity root",
+    publish / skip := true,
   )
+
+lazy val `sbt-compatibility-rules` = project
+  .enablePlugins(SbtPlugin)
 
 lazy val `sbt-compatibility` = project
   .dependsOn(`sbt-compatibility-rules`)
-  .enablePlugins(ScriptedPlugin)
+  .enablePlugins(SbtPlugin)
   .settings(
-    sbtPlugin := true,
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0"),

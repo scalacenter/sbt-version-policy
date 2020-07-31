@@ -11,8 +11,6 @@ trait SbtCompatibilityKeys {
   final val compatibilityCheck                  = taskKey[Unit]("Runs both compatibilityReportDependencyIssues and mimaReportBinaryIssues")
   final val forwardCompatibilityCheck           = taskKey[Unit]("")
 
-  @deprecated("Use compatibilityRules instead", "0.0.8")
-  final def compatibilityReconciliations         = SbtCompatibilityRulesPlugin.autoImport.compatibilityRules
   final val compatibilityIgnored                 = taskKey[Seq[OrganizationArtifactName]]("")
   final val compatibilityCheckDirection          = taskKey[Direction]("")
 
