@@ -1,0 +1,5 @@
+> v1/publishLocal
+-> bumpScala/versionPolicyReportDependencyIssues
+> bumpScala/check
+> bumpJava/versionPolicyReportDependencyIssues
+> bumpScalaAndAddRule/versionPolicyReportDependencyIssues

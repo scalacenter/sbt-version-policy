@@ -11,7 +11,7 @@ You need to have a JDK and sbt installed on your machine.
 
 ## Project Structure
 
-This project contains only a single module, `sbt-compatibility`. Its
+This project contains only a single module, `sbt-version-policy`. Its
 sources are under `src/`, at the root of the project.
 
 The sources of the sbt plugin itself live under `src/main`.
@@ -37,7 +37,7 @@ $ sbt
 Individual scripted tests can be run like
 ```text
 $ sbt
-> scripted sbt-compatibility/simple
+> scripted sbt-version-policy/simple
 ```
 Note that sbt is able to auto-complete the test names. See the completions by entering Tab.
 

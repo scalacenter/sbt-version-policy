@@ -1,5 +1,0 @@
-> v1/publishLocal
--> bumpScala/compatibilityReportDependencyIssues
-> bumpScala/check
-> bumpJava/compatibilityReportDependencyIssues
-> bumpScalaAndAddRule/compatibilityReportDependencyIssues
