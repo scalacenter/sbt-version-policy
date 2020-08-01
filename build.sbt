@@ -14,7 +14,7 @@ inThisBuild(List(
 ))
 
 lazy val root = (project in file("."))
-  .aggregate(`sbt-version-policy-rules`, `sbt-version-policy`)
+  .aggregate(`sbt-version-policy-rules`, `sbt-version-policy`, `sbt-version-policy-dummy`)
   .settings(
     name := "sbt-version-policy root",
     publish / skip := true,
