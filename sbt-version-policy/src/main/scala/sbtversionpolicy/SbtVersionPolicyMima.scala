@@ -15,6 +15,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
   object autoImport {
     val versionPolicyPreviousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
     val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
+    val versionScheme = settingKey[Option[String]]("Version scheme used for this build: early-semver, pvp, semver-spec")     
   }
   val versionPolicyInternal: SbtVersionPolicyInternalKeys =
     new SbtVersionPolicyInternalKeys {}
@@ -72,10 +73,27 @@ object SbtVersionPolicyMima extends AutoPlugin {
 
   override def globalSettings = Def.settings(
     versionPolicyFirstVersion := None,
-    versionPolicyVersionCompatibility := VersionCompatibility.SemVer,
   )
 
   override def projectSettings = Def.settings(
+    versionPolicyVersionCompatibility := {
+      val schemeOpt = versionScheme.?.value.getOrElse(None)
+      schemeOpt match {
+        case Some("semver") =>
+          sys.error(s"""versionScheme 'semver' is ambiguous.
+                       |Based on the Semantic Versioning 2.0.0, 0.y.z updates are all initial development and thus
+                       |0.6.0 and 0.6.1 would NOT maintain any compatibility, but in Scala ecosystem it is
+                       |common to start adopting binary compatibility even in 0.y.z releases.
+                       |
+                       |Specify 'early-semver' for the early variant.
+                       |Specify 'semver-spec' for the Spec-correct SemVer.""".stripMargin)
+        case Some("early-semver") => VersionCompatibility.SemVer
+        case Some("semver-spec")  => VersionCompatibility.SemVerSpec
+        case Some("pvp")          => VersionCompatibility.PackVer
+        case Some(x)              => sys.error(s"unknown versionScheme '$x'")
+        case None                 => VersionCompatibility.SemVer
+      }
+    },
     versionPolicyPreviousVersions := {
       val ver = Keys.version.value
       val firstOpt = versionPolicyFirstVersion.value
