@@ -77,21 +77,17 @@ object SbtVersionPolicyMima extends AutoPlugin {
 
   override def projectSettings = Def.settings(
     versionPolicyVersionCompatibility := {
+      import VersionCompatibility.{ Always, Default, Strict }
       val schemeOpt = versionScheme.?.value.getOrElse(None)
       schemeOpt match {
-        case Some("semver") =>
-          sys.error(s"""versionScheme 'semver' is ambiguous.
-                       |Based on the Semantic Versioning 2.0.0, 0.y.z updates are all initial development and thus
-                       |0.6.0 and 0.6.1 would NOT maintain any compatibility, but in Scala ecosystem it is
-                       |common to start adopting binary compatibility even in 0.y.z releases.
-                       |
-                       |Specify 'early-semver' for the early variant.
-                       |Specify 'semver-spec' for the Spec-correct SemVer.""".stripMargin)
-        case Some("early-semver") => VersionCompatibility.SemVer
-        case Some("semver-spec")  => VersionCompatibility.SemVerSpec
-        case Some("pvp")          => VersionCompatibility.PackVer
-        case Some(x)              => sys.error(s"unknown versionScheme '$x'")
-        case None                 => VersionCompatibility.SemVer
+        case Some(x) =>
+          val compatOpt = VersionCompatibility(x)
+          compatOpt match {
+            case Some(Always) | Some(Default) | Some(Strict) | None =>
+              sys.error(s"unsupported version scheme: $x")
+            case Some(compat) => compat
+          }
+        case None => VersionCompatibility.EarlySemVer
       }
     },
     versionPolicyPreviousVersions := {
