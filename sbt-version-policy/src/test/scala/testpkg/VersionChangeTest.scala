@@ -9,7 +9,7 @@ object VersionChangeTest extends BasicTestSuite {
     assert(VersionChange("0.1.0", "0.1.0", SemVerSpec) == VersionChange.Same)
     assert(VersionChange("0.1.0", "0.1.1", SemVerSpec) == VersionChange.Prerelease)
     assert(VersionChange("0.1.0", "0.2.0", SemVerSpec) == VersionChange.Prerelease)
-    assert(VersionChange("1.0.0", "1.0.0-M1", SemVerSpec) == VersionChange.Prerelease)
+    assert(VersionChange("1.0.0-M1", "1.0.0", SemVerSpec) == VersionChange.Prerelease)
     assert(VersionChange("1.0.0", "1.0.1", SemVerSpec) == VersionChange.Patch)
     assert(VersionChange("1.0.0", "1.1.0", SemVerSpec) == VersionChange.MinorUpgrade)
     assert(VersionChange("1.0.0", "2.0.0", SemVerSpec) == VersionChange.MajorUpgrade)
