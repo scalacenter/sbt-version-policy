@@ -16,10 +16,11 @@ object SbtVersionPolicyMima extends AutoPlugin {
     val versionPolicyPreviousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
     val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
   }
-
-  val versionPolicyVersionCompatibility = settingKey[VersionCompatibility]("VersionCompatibility used to determine compatibility.")
+  val versionPolicyInternal: SbtVersionPolicyInternalKeys =
+    new SbtVersionPolicyInternalKeys {}
 
   import autoImport._
+  import versionPolicyInternal._
 
   private def moduleName(crossVersion: CrossVersion, sv: String, sbv: String, baseName: String): String =
     CrossVersion(crossVersion, sv, sbv).fold(baseName)(_(baseName))

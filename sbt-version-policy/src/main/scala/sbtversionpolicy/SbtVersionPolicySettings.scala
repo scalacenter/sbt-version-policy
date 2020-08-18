@@ -247,22 +247,22 @@ object SbtVersionPolicySettings {
           )
       }
     },
-    versionPolicyVersionChange := {
+    versionPolicyVersionCompatResult := {
       val ver = version.value
       val prevs = versionPolicyPreviousVersions.value
       if (prevs.nonEmpty) {
         val maxPrev = prevs.map(Version(_)).max.repr
-        val compat = SbtVersionPolicyMima.versionPolicyVersionCompatibility.value
-        VersionChange(maxPrev, ver, compat)
+        val compat = versionPolicyVersionCompatibility.value
+        VersionCompatResult(maxPrev, ver, compat)
       }
-      else VersionChange.MajorUpgrade
+      else VersionCompatResult.None
     },
     versionPolicyMimaCheck := (Def.taskDyn {
-      import VersionChange._
-      val change = versionPolicyVersionChange.value
-      change match {
-        case MinorUpgrade => MimaPlugin.autoImport.mimaReportBinaryIssues
-        case PatchUpgrade =>
+      import VersionCompatResult._
+      val r = versionPolicyVersionCompatResult.value
+      r match {
+        case BinaryCompatible => MimaPlugin.autoImport.mimaReportBinaryIssues
+        case BinaryAndSourceCompatible =>
           Def.task {
             versionPolicyForwardCompatibilityCheck.value
             MimaPlugin.autoImport.mimaReportBinaryIssues.value

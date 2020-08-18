@@ -21,5 +21,6 @@ trait SbtVersionPolicyInternalKeys {
   final val versionPolicyDetailedReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
   final val versionPolicyFallbackReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
 
-  final val versionPolicyVersionChange = taskKey[VersionChange]("Calculated version change compared to the previous version.")
+  final val versionPolicyVersionCompatibility = settingKey[VersionCompatibility]("VersionCompatibility used to determine compatibility.")
+  final val versionPolicyVersionCompatResult = taskKey[VersionCompatResult]("Calculated version change compared to the previous version.")
 }
