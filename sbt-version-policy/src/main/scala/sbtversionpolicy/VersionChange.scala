@@ -28,7 +28,7 @@ object VersionChange {
    * Source compatibility [[https://docs.scala-lang.org/overviews/contributors/index.html SHOULD]]
    * be guaranteed between a patch.
    */
-  case object Patch extends VersionChange
+  case object PatchUpgrade extends VersionChange
 
   /** Prerelease represents version changes during development period.
    * This could include 0.y.z in SemVer or changes between release candidates.
@@ -71,7 +71,7 @@ object VersionChange {
         if (scheme == VersionCompatibility.PackVer) MajorUpgrade
         else MinorUpgrade
       // handle z chages in (non-zero).y.z cases
-      case _ if !p_1Zero && p_3 != n_3 => Patch
+      case _ if !p_1Zero && p_3 != n_3 => PatchUpgrade
       case _ if !p_1Zero               => Prerelease // handle tag changes
       // in SemVerSpec all 0.y.z changes are initial development
       case _ if p_1Zero && scheme == VersionCompatibility.SemVerSpec => Prerelease

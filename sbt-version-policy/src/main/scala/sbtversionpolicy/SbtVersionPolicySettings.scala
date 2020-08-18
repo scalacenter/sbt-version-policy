@@ -262,12 +262,11 @@ object SbtVersionPolicySettings {
       val change = versionPolicyVersionChange.value
       change match {
         case MinorUpgrade => MimaPlugin.autoImport.mimaReportBinaryIssues
-        case Patch =>
+        case PatchUpgrade =>
           Def.task {
             versionPolicyForwardCompatibilityCheck.value
             MimaPlugin.autoImport.mimaReportBinaryIssues.value
           }
-          
         case _ => Def.task { () } // skip mima for major upgrade + dev
       }
     }).value
