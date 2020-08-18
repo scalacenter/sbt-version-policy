@@ -1,7 +1,7 @@
 package sbtversionpolicy
 
 import com.typesafe.tools.mima.plugin.{MimaPlugin, SbtMima}
-import coursier.version.{ModuleMatcher, ModuleMatchers, VersionCompatibility}
+import coursier.version.{ModuleMatcher, ModuleMatchers, Version, VersionCompatibility}
 import sbt._
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
@@ -10,6 +10,7 @@ import lmcoursier.definitions.Reconciliation
 import sbtversionpolicy.internal.{DependencyCheck, MimaIssues}
 import sbtversionpolicyrules.SbtVersionPolicyRulesPlugin
 import SbtVersionPolicyRulesPlugin.autoImport.versionPolicyDependencyRules
+import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
 
 import scala.util.Try
 
@@ -109,7 +110,6 @@ object SbtVersionPolicySettings {
         projId.withRevision(version)
       }
     },
-    versionPolicyPreviousVersions := coursier.version.Previous.previousStableVersion(sbt.Keys.version.value).toSeq,
 
     versionPolicyPreviousArtifacts := versionPolicyPreviousArtifactsFromMima.value
   )
@@ -226,7 +226,7 @@ object SbtVersionPolicySettings {
         throw new Exception("Compatibility check failed (see messages above)")
     },
     versionPolicyCheck := {
-      MimaPlugin.autoImport.mimaReportBinaryIssues.value
+      versionPolicyMimaCheck.value
       versionPolicyReportDependencyIssues.value
     },
     versionPolicyForwardCompatibilityCheck := {
@@ -246,7 +246,30 @@ object SbtVersionPolicySettings {
             name.value,
           )
       }
-    }
+    },
+    versionPolicyVersionCompatResult := {
+      val ver = version.value
+      val prevs = versionPolicyPreviousVersions.value
+      if (prevs.nonEmpty) {
+        val maxPrev = prevs.map(Version(_)).max.repr
+        val compat = versionPolicyVersionCompatibility.value
+        VersionCompatResult(maxPrev, ver, compat)
+      }
+      else VersionCompatResult.None
+    },
+    versionPolicyMimaCheck := (Def.taskDyn {
+      import VersionCompatResult._
+      val r = versionPolicyVersionCompatResult.value
+      r match {
+        case BinaryCompatible => MimaPlugin.autoImport.mimaReportBinaryIssues
+        case BinaryAndSourceCompatible =>
+          Def.task {
+            versionPolicyForwardCompatibilityCheck.value
+            MimaPlugin.autoImport.mimaReportBinaryIssues.value
+          }
+        case _ => Def.task { () } // skip mima for major upgrade + dev
+      }
+    }).value
   )
 
 }

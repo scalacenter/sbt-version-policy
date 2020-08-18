@@ -17,8 +17,10 @@ trait SbtVersionPolicyInternalKeys {
 
   final val versionPolicyAutoPreviousArtifacts     = taskKey[Seq[ModuleID]]("")
   final val versionPolicyPreviousArtifactsFromMima = taskKey[Seq[ModuleID]]("")
-  final val versionPolicyPreviousVersions          = taskKey[Seq[String]]("")
 
   final val versionPolicyDetailedReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
   final val versionPolicyFallbackReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")
+
+  final val versionPolicyVersionCompatibility = settingKey[VersionCompatibility]("VersionCompatibility used to determine compatibility.")
+  final val versionPolicyVersionCompatResult = taskKey[VersionCompatResult]("Calculated version change compared to the previous version.")
 }

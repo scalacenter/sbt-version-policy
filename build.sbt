@@ -36,8 +36,10 @@ lazy val `sbt-version-policy` = project
     ),
     libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "0.0.22",
-      "io.get-coursier" %% "versions" % "0.2.2"
+      "io.get-coursier" %% "versions" % "0.2.2",
+      "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
+    testFrameworks += new TestFramework("verify.runner.Framework"),
     scriptedDependencies := {
       scriptedDependencies.value
       publishLocal.in(`sbt-version-policy-rules`).value

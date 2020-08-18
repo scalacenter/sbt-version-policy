@@ -1,14 +1,11 @@
 package sbtversionpolicy
 
 import com.typesafe.tools.mima.plugin.MimaPlugin
-import coursier.version.Previous
+import coursier.version.{ Previous, Version, VersionCompatibility }
 import sbt.{AutoPlugin, Def, Keys, settingKey}
-
+import sbt.librarymanagement.{ CrossVersion, ModuleID }
 import scala.collection.JavaConverters._
-import coursier.version.VersionCompatibility
-import coursier.version.Version
-import sbt.librarymanagement.CrossVersion
-import sbt.librarymanagement.ModuleID
+import MimaPlugin.autoImport.mimaPreviousArtifacts
 
 object SbtVersionPolicyMima extends AutoPlugin {
 
@@ -16,11 +13,14 @@ object SbtVersionPolicyMima extends AutoPlugin {
   override def requires = MimaPlugin
 
   object autoImport {
-    val previousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
-    val addedIn = settingKey[Option[String]]("First version this module was or will be published for.")
+    val versionPolicyPreviousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
+    val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
   }
+  val versionPolicyInternal: SbtVersionPolicyInternalKeys =
+    new SbtVersionPolicyInternalKeys {}
 
   import autoImport._
+  import versionPolicyInternal._
 
   private def moduleName(crossVersion: CrossVersion, sv: String, sbv: String, baseName: String): String =
     CrossVersion(crossVersion, sv, sbv).fold(baseName)(_(baseName))
@@ -53,11 +53,11 @@ object SbtVersionPolicyMima extends AutoPlugin {
 
   private lazy val previousVersionOpt: Def.Initialize[Option[String]] = Def.settingDyn {
     val ver = sbt.Keys.version.value
+    val compat = versionPolicyVersionCompatibility.value
     Previous.previousStableVersion(ver) match {
       case Some(previousVersion) => Def.setting(Some(previousVersion))
       case None =>
-        // FIXME Make that VersionCompatibility configurable
-        val mini = Version(VersionCompatibility.SemVer.minimumCompatibleVersion(ver))
+        val mini = Version(compat.minimumCompatibleVersion(ver))
         Def.setting {
           val current = Version(ver)
           val previousVersions = previousVersionsFromRepo.value.map(v => Version(v))
@@ -70,10 +70,15 @@ object SbtVersionPolicyMima extends AutoPlugin {
     }
   }
 
+  override def globalSettings = Def.settings(
+    versionPolicyFirstVersion := None,
+    versionPolicyVersionCompatibility := VersionCompatibility.SemVer,
+  )
+
   override def projectSettings = Def.settings(
-    previousVersions := {
+    versionPolicyPreviousVersions := {
       val ver = Keys.version.value
-      val firstOpt = addedIn.value
+      val firstOpt = versionPolicyFirstVersion.value
       previousVersionOpt.value match {
         case Some(v) =>
           val firstVersionCheck = firstOpt.forall(first => Version(first).compareTo(Version(v)) <= 0)
@@ -85,10 +90,10 @@ object SbtVersionPolicyMima extends AutoPlugin {
           Nil
       }
     },
-    addedIn := None,
-    MimaPlugin.autoImport.mimaPreviousArtifacts := {
+
+    mimaPreviousArtifacts := {
       val projId = Keys.projectID.value.withExplicitArtifacts(Vector.empty)
-      val previousVersions0 = previousVersions.value
+      val previousVersions0 = versionPolicyPreviousVersions.value
 
       previousVersions0.toSet.map { version =>
         projId
