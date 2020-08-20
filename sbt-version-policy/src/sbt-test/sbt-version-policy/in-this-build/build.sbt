@@ -19,6 +19,6 @@ lazy val b = project
 inThisBuild(List(
   scalaVersion := "2.12.11",
   organization := "io.github.alexarchambault.sbtversionpolicy.test2",
-  versionPolicyDependencyRules += "org.scala-lang.modules" %% "scala-xml" % "semver"
+  versionPolicyDependencyRules += "org.scala-lang.modules" %% "scala-xml" % "early-semver"
 ))
 

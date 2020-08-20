@@ -18,14 +18,14 @@ object VersionCompatResultTest extends BasicTestSuite {
   }
 
   test("Early SemVer") {
-    assert(VersionCompatResult("0.1.0", "0.1.0", SemVer) == BinaryAndSourceCompatible)
-    assert(VersionCompatResult("0.1.0", "0.1.1", SemVer) == BinaryCompatible)
-    assert(VersionCompatResult("0.1.0", "0.2.0", SemVer) == None)
-    assert(VersionCompatResult("0.1.0", "1.0.0-M1", SemVer) == None)
-    assert(VersionCompatResult("1.0.0", "1.0.0-M1", SemVer) == None)
-    assert(VersionCompatResult("1.0.0", "1.0.1", SemVer) == BinaryAndSourceCompatible)
-    assert(VersionCompatResult("1.0.0", "1.1.0", SemVer) == BinaryCompatible)
-    assert(VersionCompatResult("1.0.0", "2.0.0", SemVer) == None)
+    assert(VersionCompatResult("0.1.0", "0.1.0", EarlySemVer) == BinaryAndSourceCompatible)
+    assert(VersionCompatResult("0.1.0", "0.1.1", EarlySemVer) == BinaryCompatible)
+    assert(VersionCompatResult("0.1.0", "0.2.0", EarlySemVer) == None)
+    assert(VersionCompatResult("0.1.0", "1.0.0-M1", EarlySemVer) == None)
+    assert(VersionCompatResult("1.0.0", "1.0.0-M1", EarlySemVer) == None)
+    assert(VersionCompatResult("1.0.0", "1.0.1", EarlySemVer) == BinaryAndSourceCompatible)
+    assert(VersionCompatResult("1.0.0", "1.1.0", EarlySemVer) == BinaryCompatible)
+    assert(VersionCompatResult("1.0.0", "2.0.0", EarlySemVer) == None)
   }
 
   test("Pack Ver") {

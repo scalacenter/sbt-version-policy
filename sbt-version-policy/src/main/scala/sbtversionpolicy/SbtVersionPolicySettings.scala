@@ -43,7 +43,7 @@ object SbtVersionPolicySettings {
   private def defaultRules = Seq(
     ("*" % "*" % "pvp").cross(CrossVersion.full),
     "*" %% "*" % "pvp",
-    "*" % "*" % "semver"
+    "*" % "*" % "early-semver"
   )
 
   def reconciliationGlobalSettings = Def.settings(
@@ -158,7 +158,7 @@ object SbtVersionPolicySettings {
             val compatibility = r match {
               case Reconciliation.Default => VersionCompatibility.Default
               case Reconciliation.Relaxed => VersionCompatibility.Always
-              case Reconciliation.SemVer  => VersionCompatibility.SemVer
+              case Reconciliation.SemVer  => VersionCompatibility.EarlySemVer
               case Reconciliation.Strict  => VersionCompatibility.Strict
             }
             (matcher, compatibility)
