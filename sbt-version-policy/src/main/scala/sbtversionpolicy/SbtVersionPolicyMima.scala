@@ -15,7 +15,6 @@ object SbtVersionPolicyMima extends AutoPlugin {
   object autoImport {
     val versionPolicyPreviousVersions = settingKey[Seq[String]]("Previous versions to check compatibility against.")
     val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
-    val versionScheme = settingKey[Option[String]]("Version scheme used for this build: early-semver, pvp, semver-spec")     
   }
   val versionPolicyInternal: SbtVersionPolicyInternalKeys =
     new SbtVersionPolicyInternalKeys {}
@@ -78,7 +77,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
   override def projectSettings = Def.settings(
     versionPolicyVersionCompatibility := {
       import VersionCompatibility.{ Always, Default, Strict }
-      val schemeOpt = versionScheme.?.value.getOrElse(None)
+      val schemeOpt = Keys.versionScheme.?.value.getOrElse(None)
       schemeOpt match {
         case Some(x) =>
           val compatOpt = VersionCompatibility(x)
