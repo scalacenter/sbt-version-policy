@@ -15,8 +15,8 @@ trait SbtVersionPolicyKeys {
 
   final val versionPolicyIgnored                = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")
   final val versionPolicyCheckDirection         = settingKey[Direction]("Direction to check the version compatibility. Default: Direction.backward.")
-  final val versionPolicyDefaultRules           = settingKey[Seq[ModuleID]]("Fallback rules used to evalute version policy issues in the library dependency.")
-  final val versionPolicyDefaultReconciliation  = settingKey[Option[VersionCompatibility]]("Fallback reconciliation used to evalute version policy issues in the library dependency.")
+  final val versionPolicyDefaultRules           = settingKey[Seq[ModuleID]]("Fallback rules used to evaluate version policy issues in the library dependency.")
+  final val versionPolicyDefaultReconciliation  = settingKey[Option[VersionCompatibility]]("Fallback reconciliation used to evaluate version policy issues in the library dependency.")
 
   final val versionPolicyInternal: SbtVersionPolicyInternalKeys =
     new SbtVersionPolicyInternalKeys {}
