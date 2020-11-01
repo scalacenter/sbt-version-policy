@@ -31,7 +31,7 @@ lazy val `sbt-version-policy` = project
     scriptedBufferLog := false,
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0"),
     libraryDependencies ++= Seq(
-      "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
+      "io.github.alexarchambault" %% "data-class" % "0.2.4" % Provided,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     ),
     libraryDependencies ++= Seq(
