@@ -18,6 +18,7 @@ object SbtVersionPolicyPlugin extends AutoPlugin {
 
   object autoImport extends SbtVersionPolicyKeys {
     val VersionCompatibility = coursier.version.VersionCompatibility
+    val Compatibility = sbtversionpolicy.Compatibility
     def versionPolicyIgnoreVersion(version: String): Seq[Def.Setting[_]] =
       SbtVersionPolicyPlugin.mimaIgnoreVersion(version)
   }
