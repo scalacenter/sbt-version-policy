@@ -8,8 +8,6 @@ import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
 import sbtversionpolicy.internal.{DependencyCheck, MimaIssues}
-import sbtversionpolicyrules.SbtVersionPolicyRulesPlugin
-import SbtVersionPolicyRulesPlugin.autoImport.versionPolicyDependencyRules
 import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
 
 import scala.util.Try
@@ -270,6 +268,10 @@ object SbtVersionPolicySettings {
         case _ => Def.task { () } // skip mima for major upgrade + dev
       }
     }).value
+  )
+
+  def dependencyRulesGlobalSettings = Seq(
+    versionPolicyDependencyRules := Seq.empty
   )
 
 }
