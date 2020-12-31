@@ -14,17 +14,13 @@ inThisBuild(List(
 ))
 
 lazy val root = (project in file("."))
-  .aggregate(`sbt-version-policy-rules`, `sbt-version-policy`, `sbt-version-policy-dummy`)
+  .aggregate(`sbt-version-policy`, `sbt-version-policy-dummy`)
   .settings(
     name := "sbt-version-policy root",
     publish / skip := true,
   )
 
-lazy val `sbt-version-policy-rules` = project
-  .enablePlugins(SbtPlugin)
-
 lazy val `sbt-version-policy` = project
-  .dependsOn(`sbt-version-policy-rules`)
   .enablePlugins(SbtPlugin)
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
@@ -40,10 +36,6 @@ lazy val `sbt-version-policy` = project
       "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
     testFrameworks += new TestFramework("verify.runner.Framework"),
-    scriptedDependencies := {
-      scriptedDependencies.value
-      publishLocal.in(`sbt-version-policy-rules`).value
-    }
   )
 
 lazy val `sbt-version-policy-dummy` = project

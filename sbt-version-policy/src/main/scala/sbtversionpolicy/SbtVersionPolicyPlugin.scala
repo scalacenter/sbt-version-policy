@@ -23,11 +23,13 @@ object SbtVersionPolicyPlugin extends AutoPlugin {
   }
 
   override def globalSettings =
-    SbtVersionPolicySettings.reconciliationGlobalSettings
+    SbtVersionPolicySettings.reconciliationGlobalSettings ++
+      SbtVersionPolicySettings.dependencyRulesGlobalSettings
 
   override def projectSettings =
     SbtVersionPolicySettings.updateSettings ++
       SbtVersionPolicySettings.reconciliationSettings ++
       SbtVersionPolicySettings.previousArtifactsSettings ++
       SbtVersionPolicySettings.findIssuesSettings
+
 }
