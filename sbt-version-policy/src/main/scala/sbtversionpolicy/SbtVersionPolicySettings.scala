@@ -123,6 +123,7 @@ object SbtVersionPolicySettings {
         sys.error("Compile configuration not found in update report")
       }
 
+      val maybeCompatibilityIntention = versionPolicyIntention.?.value
       val depRes = versionPolicyDependencyResolution.value
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
@@ -168,27 +169,31 @@ object SbtVersionPolicySettings {
         ours ++ fromCsrConfig0 ++ fallback
       }
 
-      val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
-
       val previousModuleIds = versionPolicyPreviousArtifacts.value
 
-      previousModuleIds.map { previousModuleId =>
+      // Skip dependency check if no compatibility is intended
+      if (maybeCompatibilityIntention.contains(Compatibility.None)) Nil else {
 
-        val report0 = DependencyCheck.report(
-          currentModules,
-          previousModuleId,
-          reconciliations,
-          VersionCompatibility.Strict,
-          sv,
-          sbv,
-          depRes,
-          scalaModuleInf,
-          updateConfig,
-          warningConfig,
-          log
-        )
+        val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
-        (previousModuleId, report0)
+        previousModuleIds.map { previousModuleId =>
+
+          val report0 = DependencyCheck.report(
+            currentModules,
+            previousModuleId,
+            reconciliations,
+            VersionCompatibility.Strict,
+            sv,
+            sbv,
+            depRes,
+            scalaModuleInf,
+            updateConfig,
+            warningConfig,
+            log
+          )
+
+          (previousModuleId, report0)
+        }
       }
     },
     versionPolicyReportDependencyIssues := {
