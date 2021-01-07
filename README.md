@@ -27,7 +27,7 @@ to provide. It can take the following three values:
 - ~~~ scala
   // Your next release will provide no compatibility guarantees with the
   // previous one.
-  versionPolicyIntention := Compatibility.None
+  ThisBuild / versionPolicyIntention := Compatibility.None
   ~~~
 - ~~~ scala
   // Your next release will be binary compatible with the previous one,
