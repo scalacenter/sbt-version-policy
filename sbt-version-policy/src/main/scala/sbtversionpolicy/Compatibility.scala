@@ -72,15 +72,17 @@ object Compatibility {
     compatibility match {
       case Compatibility.None =>
         // No compatibility is guaranteed: the major version must be incremented (or the minor version, if major is 0)
-        val majorIncrement = !major.contains(0) && minor.contains(0) && patch.contains(0)
-        val minorIncrement = major.contains(0) && !minor.contains(0) && patch.contains(0)
-        if (majorIncrement || minorIncrement) Option.empty
+        val isValidVersion =
+          if (major.contains(0)) patch.contains(0) // minor version bump
+          else minor.contains(0) && patch.contains(0) // major version bump
+        if (isValidVersion) Option.empty
         else Some(s"sInvalid version number: ${versionNumber.toString}. You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release.")
       case Compatibility.BinaryCompatible =>
         // No source compatibility is guaranteed, the minor version must be incremented (or the patch version, if major is 0)
-        val minorIncrement = !minor.contains(0) && patch.contains(0)
-        val patchIncrement = major.contains(0) && !patch.contains(0)
-        if (minorIncrement || patchIncrement) Option.empty
+        val isValidVersion =
+          if (major.contains(0)) true // always OK
+          else patch.contains(0) // minor version bump
+        if (isValidVersion) Option.empty
         else Some(s"Invalid version number: ${versionNumber.toString}. You must increment the minor version number to publish a source incompatible release.")
       case Compatibility.BinaryAndSourceCompatible =>
         // OK, the version can be set to whatever

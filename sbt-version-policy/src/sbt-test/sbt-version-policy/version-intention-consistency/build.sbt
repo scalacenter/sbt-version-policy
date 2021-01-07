@@ -79,3 +79,11 @@ val `v1-2-0` =
     version := "1.2.0",
     versionPolicyIntention := Compatibility.None
   )
+
+// Major increment and binary compatibility => OK
+val `v2-0-0` =
+  project.settings(
+    name := "version-test",
+    version := "2.0.0",
+    versionPolicyIntention := Compatibility.BinaryCompatible
+  )
