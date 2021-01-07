@@ -223,6 +223,14 @@ object SbtVersionPolicySettings {
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
     },
+    versionCheck := {
+      val intention =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
+      for (error <- Compatibility.validateVersion(intention, version.value)) {
+        throw new MessageOnlyException(error)
+      }
+    },
     versionPolicyCheck := {
       versionPolicyMimaCheck.value
       versionPolicyReportDependencyIssues.value
@@ -251,21 +259,23 @@ object SbtVersionPolicySettings {
       if (prevs.nonEmpty) {
         val maxPrev = prevs.map(Version(_)).max.repr
         val compat = versionPolicyVersionCompatibility.value
-        VersionCompatResult(maxPrev, ver, compat)
+        Compatibility(maxPrev, ver, compat)
       }
-      else VersionCompatResult.None
+      else Compatibility.None
     },
     versionPolicyMimaCheck := (Def.taskDyn {
-      import VersionCompatResult._
-      val r = versionPolicyVersionCompatResult.value
-      r match {
+      import Compatibility._
+      val compatibility =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
+      compatibility match {
         case BinaryCompatible => MimaPlugin.autoImport.mimaReportBinaryIssues
         case BinaryAndSourceCompatible =>
           Def.task {
             versionPolicyForwardCompatibilityCheck.value
             MimaPlugin.autoImport.mimaReportBinaryIssues.value
           }
-        case _ => Def.task { () } // skip mima for major upgrade + dev
+        case None => Def.task { () } // skip mima if no compatibility is intented
       }
     }).value
   )
