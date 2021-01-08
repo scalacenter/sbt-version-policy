@@ -64,7 +64,7 @@ object Compatibility {
    * Validates that the given new `version` matches the claimed `compatibility` level.
    * @return Some validation error, or None if the version is valid.
    */
-  def validateVersion(compatibility: Compatibility, version: String): Option[String] = {
+  def isValidVersion(compatibility: Compatibility, version: String): Boolean = {
     val versionNumber = VersionNumber(version)
     val major = versionNumber._1
     val minor = versionNumber._2
@@ -72,21 +72,15 @@ object Compatibility {
     compatibility match {
       case Compatibility.None =>
         // No compatibility is guaranteed: the major version must be incremented (or the minor version, if major is 0)
-        val isValidVersion =
-          if (major.contains(0)) patch.contains(0) // minor version bump
-          else minor.contains(0) && patch.contains(0) // major version bump
-        if (isValidVersion) Option.empty
-        else Some(s"sInvalid version number: ${versionNumber.toString}. You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release.")
+        if (major.contains(0)) patch.contains(0) // minor version bump
+        else minor.contains(0) && patch.contains(0) // major version bump
       case Compatibility.BinaryCompatible =>
         // No source compatibility is guaranteed, the minor version must be incremented (or the patch version, if major is 0)
-        val isValidVersion =
-          if (major.contains(0)) true // always OK
-          else patch.contains(0) // minor version bump
-        if (isValidVersion) Option.empty
-        else Some(s"Invalid version number: ${versionNumber.toString}. You must increment the minor version number to publish a source incompatible release.")
+        if (major.contains(0)) true // always OK
+        else patch.contains(0) // minor version bump
       case Compatibility.BinaryAndSourceCompatible =>
         // OK, the version can be set to whatever
-        Option.empty
+        true
     }
   }
 
