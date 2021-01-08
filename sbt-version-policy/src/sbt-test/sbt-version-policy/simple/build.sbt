@@ -100,6 +100,17 @@ lazy val g = project
     version := "0.1.1"
   )
 
+lazy val h = project
+  .settings(
+    shared,
+    name := "simple-test",
+    libraryDependencies ++= Seq(
+      "com.chuusai" %% "shapeless" % "2.3.3"
+    ),
+    versionPolicyDependencyRules += "com.chuusai" %% "shapeless" % "strict",
+    version := "0.1.0+3-1234abcd" // Version number typically produced by sbt-dynver
+  )
+
 inThisBuild(List(
   scalaVersion := "2.12.11",
   organization := "io.github.alexarchambault.sbtversionpolicy.test",
