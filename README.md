@@ -32,12 +32,12 @@ to provide. It can take the following three values:
 - ~~~ scala
   // Your next release will be binary compatible with the previous one,
   // but it may not be source compatible.
-  versionPolicyIntention := Compatibility.BinaryCompatible
+  ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
   ~~~
 - ~~~ scala
   // Your next release will be both binary compatible and source compatible
   // with the previous one.
-  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+  ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
   ~~~
 
 ## Use
