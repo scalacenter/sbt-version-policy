@@ -5,12 +5,12 @@
   follows the [recommended versioning scheme],
 - ensures that none of your dependencies are bumped or removed in an incompatible way.
 
-## How to use
+## Install
 
 Add to your `project/plugins.sbt`:
 
 ```scala
-addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "1.0.0-RC1")
+addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "<version>")
 ```
 
 The latest version is [![Maven Central](https://img.shields.io/maven-central/v/ch.epfl.scala/sbt-version-policy-dummy_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-version-policy-dummy_2.12).
@@ -18,7 +18,62 @@ The latest version is [![Maven Central](https://img.shields.io/maven-central/v/c
 sbt-version-policy depends on [sbt-mima](https://github.com/lightbend/mima), so that you don't need to explicitly
 depend on it.
 
-## `versionPolicyCheck`
+## Configure
+
+The plugin introduces a new key, `versionPolicyIntention`, that you need
+to set to the level of compatibility that your next release is intended
+to provide. It can take the following three values:
+
+- ~~~ scala
+  // Your next release will provide no compatibility guarantees with the
+  // previous one.
+  ThisBuild / versionPolicyIntention := Compatibility.None
+  ~~~
+- ~~~ scala
+  // Your next release will be binary compatible with the previous one,
+  // but it may not be source compatible.
+  ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
+  ~~~
+- ~~~ scala
+  // Your next release will be both binary compatible and source compatible
+  // with the previous one.
+  ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+  ~~~
+
+## Use
+
+### Check that pull requests don’t break the intended compatibility level
+
+In your CI server, run the task `versionPolicyCheck` on pull requests.
+
+~~~
+$ sbt versionPolicyCheck
+~~~
+
+This task checks that the PR does not break the compatibility guarantees
+claimed by your `versionPolicyIntention`. For instance, if your intention
+is to have `BinaryAndSourceCompatible` changes, the task
+`versionPolicyCheck` will fail if the PR breaks binary compatibility
+or source compatibility.
+
+### Check that release version numbers are valid with respect to the compatibility guarantees they provide
+
+Before you cut a release, run the task `versionCheck`.
+
+~~~
+$ sbt versionCheck
+~~~
+
+Note: make sure that the `version` is set to the new release version
+number before you run `versionCheck`.
+
+This task checks that the release version number is consistent with the
+intended compatibility level as per `versionPolicyIntention`. For instance,
+if your intention is to publish a release that breaks binary compatibility,
+the task `versionCheck` will fail if you didn’t bump the major version
+number.
+
+## How does `versionPolicyCheck` work?
 
 The `versionPolicyCheck` task:
 - runs `mimaReportBinaryIssues`,

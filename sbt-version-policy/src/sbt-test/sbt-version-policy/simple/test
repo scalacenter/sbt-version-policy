@@ -7,3 +7,6 @@
 > e/versionPolicyReportDependencyIssues
 -> f/versionPolicyReportDependencyIssues
 > g/versionPolicyReportDependencyIssues
+-> h/versionPolicyReportDependencyIssues
+> set h/versionPolicyIntention := Compatibility.None
+> h/versionPolicyReportDependencyIssues

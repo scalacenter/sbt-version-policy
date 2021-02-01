@@ -8,8 +8,6 @@ import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import lmcoursier.definitions.Reconciliation
 import sbtversionpolicy.internal.{DependencyCheck, MimaIssues}
-import sbtversionpolicyrules.SbtVersionPolicyRulesPlugin
-import SbtVersionPolicyRulesPlugin.autoImport.versionPolicyDependencyRules
 import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
 
 import scala.util.Try
@@ -125,6 +123,7 @@ object SbtVersionPolicySettings {
         sys.error("Compile configuration not found in update report")
       }
 
+      val maybeCompatibilityIntention = versionPolicyIntention.?.value
       val depRes = versionPolicyDependencyResolution.value
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
@@ -170,27 +169,31 @@ object SbtVersionPolicySettings {
         ours ++ fromCsrConfig0 ++ fallback
       }
 
-      val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
-
       val previousModuleIds = versionPolicyPreviousArtifacts.value
 
-      previousModuleIds.map { previousModuleId =>
+      // Skip dependency check if no compatibility is intended
+      if (maybeCompatibilityIntention.contains(Compatibility.None)) Nil else {
 
-        val report0 = DependencyCheck.report(
-          currentModules,
-          previousModuleId,
-          reconciliations,
-          VersionCompatibility.Strict,
-          sv,
-          sbv,
-          depRes,
-          scalaModuleInf,
-          updateConfig,
-          warningConfig,
-          log
-        )
+        val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
-        (previousModuleId, report0)
+        previousModuleIds.map { previousModuleId =>
+
+          val report0 = DependencyCheck.report(
+            currentModules,
+            previousModuleId,
+            reconciliations,
+            VersionCompatibility.Strict,
+            sv,
+            sbv,
+            depRes,
+            scalaModuleInf,
+            updateConfig,
+            warningConfig,
+            log
+          )
+
+          (previousModuleId, report0)
+        }
       }
     },
     versionPolicyReportDependencyIssues := {
@@ -225,6 +228,23 @@ object SbtVersionPolicySettings {
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
     },
+    versionCheck := {
+      val intention =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
+      val versionValue = version.value
+      val s            = streams.value
+      val projectId    = thisProject.value.id
+
+      if (Compatibility.isValidVersion(intention, versionValue)) {
+        s.log.info(s"$projectId/$versionValue is a valid version number with respect to the compatibility guarantees '$intention'")
+      } else {
+        val detail =
+          if (intention == Compatibility.None) "You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release."
+          else "You must increment the minor version number to publish a source incompatible release."
+        throw new MessageOnlyException(s"$projectId/$versionValue is not a valid version number. $detail")
+      }
+    },
     versionPolicyCheck := {
       versionPolicyMimaCheck.value
       versionPolicyReportDependencyIssues.value
@@ -253,23 +273,29 @@ object SbtVersionPolicySettings {
       if (prevs.nonEmpty) {
         val maxPrev = prevs.map(Version(_)).max.repr
         val compat = versionPolicyVersionCompatibility.value
-        VersionCompatResult(maxPrev, ver, compat)
+        Compatibility(maxPrev, ver, compat)
       }
-      else VersionCompatResult.None
+      else Compatibility.None
     },
     versionPolicyMimaCheck := (Def.taskDyn {
-      import VersionCompatResult._
-      val r = versionPolicyVersionCompatResult.value
-      r match {
+      import Compatibility._
+      val compatibility =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
+      compatibility match {
         case BinaryCompatible => MimaPlugin.autoImport.mimaReportBinaryIssues
         case BinaryAndSourceCompatible =>
           Def.task {
             versionPolicyForwardCompatibilityCheck.value
             MimaPlugin.autoImport.mimaReportBinaryIssues.value
           }
-        case _ => Def.task { () } // skip mima for major upgrade + dev
+        case None => Def.task { () } // skip mima if no compatibility is intented
       }
     }).value
+  )
+
+  def dependencyRulesGlobalSettings = Seq(
+    versionPolicyDependencyRules := Seq.empty
   )
 
 }
