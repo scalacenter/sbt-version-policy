@@ -105,10 +105,10 @@ By default, `versionPolicyPreviousArtifacts` relies on `mimaPreviousArtifacts` f
 
 ## Dependency compatibility adjustments
 
-Set `versionPolicyDependencyRules` to specify whether library dependency upgrades are compatible or not. For instance:
+Set `versionPolicyDependencySchemes` to specify whether library dependency upgrades are compatible or not. For instance:
 
 ```scala
-versionPolicyDependencyRules += "org.scala-lang" % "scala-compiler" % "strict"
+versionPolicyDependencySchemes += "org.scala-lang" % "scala-compiler" % "strict"
 ```
 
 The following compatility types are available:
@@ -118,7 +118,7 @@ The following compatility types are available:
 - `always`: assumes all versions of the matched modules are compatible with each other,
 - `strict`: requires exact matches between the wanted and the selected versions of the matched modules.
 
-If no rule for a module is found in `versionPolicyDependencyRules`, `versionPolicyDefaultReconciliation` is used
+If no rules for a module are found in `versionPolicyDependencySchemes`, `versionPolicyDefaultScheme` is used
 as a compatibility type. Its default value is `VersionCompatibility.PackVer` (package versioning policy).
 
 ## Acknowledgments
