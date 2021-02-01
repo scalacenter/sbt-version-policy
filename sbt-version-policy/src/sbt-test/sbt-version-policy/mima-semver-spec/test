@@ -14,6 +14,7 @@
 # OK to introduce binary incompatibilities
 # during 0.1.x
 > v0-1-3/versionPolicyCheck
+> v0-1-3/publishLocal
 > reload
 
 # OK to introduce binary incompatibilities in 0.2.x
