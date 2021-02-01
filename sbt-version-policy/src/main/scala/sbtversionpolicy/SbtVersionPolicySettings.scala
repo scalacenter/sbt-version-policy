@@ -38,7 +38,7 @@ object SbtVersionPolicySettings {
   // Trying to mimick the current default behavior of evicted in sbt, that is
   // - assume scala libraries follow PVP,
   // - assume Java libraries follow semver.
-  private def defaultRules = Seq(
+  private def defaultSchemes = Seq(
     ("*" % "*" % "pvp").cross(CrossVersion.full),
     "*" %% "*" % "pvp",
     "*" % "*" % "early-semver"
@@ -48,18 +48,18 @@ object SbtVersionPolicySettings {
     versionPolicyCheckDirection := Direction.backward,
     versionPolicyIgnoreSbtDefaultReconciliations := true,
     versionPolicyUseCsrConfigReconciliations := true,
-    versionPolicyDefaultRules := defaultRules,
+    versionPolicyDefaultDependencySchemes := defaultSchemes,
     versionPolicyIgnored := Seq.empty,
-    versionPolicyDefaultReconciliation := None
+    versionPolicyDefaultScheme := None
   )
 
   def reconciliationSettings = Def.settings(
     versionPolicyFallbackReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      val defaultReconciliationOpt = versionPolicyDefaultReconciliation.value
+      val defaultReconciliationOpt = versionPolicyDefaultScheme.value
       val (fallbackRules, fallbackMatchers) = {
-        val rules: Seq[ModuleID] = versionPolicyDefaultRules.value
+        val rules: Seq[ModuleID] = versionPolicyDefaultDependencySchemes.value
         defaultReconciliationOpt match {
           case None => (rules, Nil)
           case Some(default) => (Nil, Seq(ModuleMatchers.all -> default))
@@ -78,7 +78,7 @@ object SbtVersionPolicySettings {
     versionPolicyDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      versionPolicyDependencyRules.value.map { mod =>
+      versionPolicyDependencySchemes.value.map { mod =>
         val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
@@ -294,8 +294,9 @@ object SbtVersionPolicySettings {
     }).value
   )
 
-  def dependencyRulesGlobalSettings = Seq(
-    versionPolicyDependencyRules := Seq.empty
+  def schemesGlobalSettings = Seq(
+    versionPolicyDependencySchemes := Seq.empty,
+    versionScheme := Some("early-semver")
   )
 
 }
