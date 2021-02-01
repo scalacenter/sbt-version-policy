@@ -295,7 +295,8 @@ object SbtVersionPolicySettings {
   )
 
   def schemesGlobalSettings = Seq(
-    versionPolicyDependencySchemes := Seq.empty
+    versionPolicyDependencySchemes := Seq.empty,
+    versionScheme := Some("early-semver")
   )
 
 }
