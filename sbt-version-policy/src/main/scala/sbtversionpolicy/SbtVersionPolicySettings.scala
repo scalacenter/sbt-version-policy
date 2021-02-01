@@ -262,7 +262,7 @@ object SbtVersionPolicySettings {
             mimaBinaryIssueFilters.value,
             mimaBackwardIssueFilters.value,
             mimaForwardIssueFilters.value,
-            new MimaIssues.SbtLogger(Keys.streams.value.log),
+            Keys.streams.value.log,
             name.value,
           )
       }
