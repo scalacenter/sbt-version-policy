@@ -9,5 +9,6 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3",
       "io.argonaut" %% "argonaut" % "6.1a"
-    )
+    ),
+    versionPolicyIntention := Compatibility.BinaryCompatible
   )

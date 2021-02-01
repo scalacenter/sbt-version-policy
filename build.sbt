@@ -14,24 +14,20 @@ inThisBuild(List(
 ))
 
 lazy val root = (project in file("."))
-  .aggregate(`sbt-version-policy-rules`, `sbt-version-policy`, `sbt-version-policy-dummy`)
+  .aggregate(`sbt-version-policy`, `sbt-version-policy-dummy`)
   .settings(
     name := "sbt-version-policy root",
     publish / skip := true,
   )
 
-lazy val `sbt-version-policy-rules` = project
-  .enablePlugins(SbtPlugin)
-
 lazy val `sbt-version-policy` = project
-  .dependsOn(`sbt-version-policy-rules`)
   .enablePlugins(SbtPlugin)
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.7.0"),
     libraryDependencies ++= Seq(
-      "io.github.alexarchambault" %% "data-class" % "0.2.3" % Provided,
+      "io.github.alexarchambault" %% "data-class" % "0.2.5" % Provided,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     ),
     libraryDependencies ++= Seq(
@@ -40,10 +36,6 @@ lazy val `sbt-version-policy` = project
       "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
     testFrameworks += new TestFramework("verify.runner.Framework"),
-    scriptedDependencies := {
-      scriptedDependencies.value
-      publishLocal.in(`sbt-version-policy-rules`).value
-    }
   )
 
 lazy val `sbt-version-policy-dummy` = project

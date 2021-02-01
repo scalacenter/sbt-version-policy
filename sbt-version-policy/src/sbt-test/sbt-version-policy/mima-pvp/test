@@ -43,6 +43,7 @@
 
 # OK to introduce binary incompatibilities in 1.2.x in pvp
 > v1-2-0/versionPolicyCheck
+> v1-2-0/publishLocal
 
 # OK between major versions
 > v2-0-0/versionPolicyCheck
