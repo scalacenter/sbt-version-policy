@@ -14,7 +14,7 @@ inThisBuild(List(
 ))
 
 lazy val root = (project in file("."))
-  .aggregate(`sbt-version-policy`, `sbt-version-policy-dummy`)
+  .aggregate(`sbt-version-policy`)
   .settings(
     name := "sbt-version-policy root",
     publish / skip := true,
@@ -37,6 +37,3 @@ lazy val `sbt-version-policy` = project
     ),
     testFrameworks += new TestFramework("verify.runner.Framework"),
   )
-
-lazy val `sbt-version-policy-dummy` = project
-  .in(file("sbt-version-policy/target/dummy"))

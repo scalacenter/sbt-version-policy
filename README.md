@@ -1,8 +1,9 @@
 # sbt-version-policy
 
-*sbt-version-policy*:
-- configures [sbt-mima](https://github.com/lightbend/mima) to guarantee that your library
-  follows the [recommended versioning scheme],
+sbt-version-policy helps library maintainers to follow the [recommended versioning scheme].
+This plugin:
+
+- configures [MiMa] to check for binary or source incompatibilities,
 - ensures that none of your dependencies are bumped or removed in an incompatible way.
 
 ## Install
@@ -13,9 +14,9 @@ Add to your `project/plugins.sbt`:
 addSbtPlugin("ch.epfl.scala" % "sbt-version-policy" % "<version>")
 ```
 
-The latest version is [![Maven Central](https://img.shields.io/maven-central/v/ch.epfl.scala/sbt-version-policy-dummy_2.12.svg)](https://maven-badges.herokuapp.com/maven-central/ch.epfl.scala/sbt-version-policy-dummy_2.12).
+The latest version is ![Scaladex](https://index.scala-lang.org/scalacenter/sbt-version-policy/sbt-version-policy/latest.svg).
 
-sbt-version-policy depends on [sbt-mima](https://github.com/lightbend/mima), so that you don't need to explicitly
+sbt-version-policy depends on [MiMa], so that you don't need to explicitly
 depend on it.
 
 ## Configure
@@ -39,6 +40,20 @@ to provide. It can take the following three values:
   // with the previous one.
   ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
   ~~~
+
+The plugin uses [MiMa] to check for incompatibilities with the previous
+release. The previous release version is automatically computed from
+the current value of the `version` key in your build. This means that
+you have to set this key to the _next_ version you want to release:
+
+~~~
+// Next version will be 1.1.0
+ThisBuild / version := "1.1.0"
+~~~
+
+In case you use a plugin like [sbt-dynver], which automatically sets
+the `version` based on the Git status, you have nothing to do (the
+`version` set by sbt-dynver will just work with sbt-version-policy).
 
 ## Use
 
@@ -76,42 +91,68 @@ number.
 ## How does `versionPolicyCheck` work?
 
 The `versionPolicyCheck` task:
-- runs `mimaReportBinaryIssues`,
-- along with `versionPolicyReportDependencyIssues`
 
-`versionPolicyReportDependencyIssues` itself checks for
-- removed dependencies, or
-- dependencies bumped in an incompatible way,
+- checks that there are no binary or source incompatibilities
+  between the current state of the project and the previous
+  release (it uses `mimaReportBinaryIssues` under the hood),
+- and, that no dependencies of your project have been removed
+  or bumped in an incompatible way (it uses a subtask
+  `versionPolicyReportDependencyIssues` under the hood).
 
-and fails if any of these checks fails.
+The task `versionPolicyCheck` fails if any of these checks fails.
 
-## Automatic previous version calculation
+### Automatic previous version calculation
 
 sbt-version-policy automatically sets `mimaPreviousArtifacts`, depending on the current value of `version`, kind of like
 [sbt-mima-version-check](https://github.com/ChristopherDavenport/sbt-mima-version-check) does.
 The previously compatible version is computed from `version` the following way:
-- drop any "metadata part" (anything after a `+`, including the `+` itself)
-  - if the resulting version contains only zeros (like `0.0.0`), leave `mimaPreviousArtifacts` empty,
-  - else if the resulting version does not contain a qualifier (see below), it is used in `mimaPreviousArtifacts`.
-- else, drop the qualifier part, that is any suffix like `-RC1` or `-M2` or `-alpha` or `-SNAPSHOT`
-  - if the resulting version ends with `.0`, `mimaPreviousArtifacts` is left empty
-  - else, the last numerical part of this version is decreased by one, and used in `mimaPreviousArtifacts`.
 
-## `versionPolicyPreviousArtifacts`
+- if it contains "metadata" (anything after a `+`, including the `+` itself), drop the
+  metadata part
+  - if the resulting version contains only zeros (like `0.0.0`), leave `mimaPreviousArtifacts` empty,
+  - else if the resulting version does not contain a qualifier (see below), it is used in
+    `mimaPreviousArtifacts`. For instance, if `version` is `1.0.0+3-abcd1234`, then
+    `mimaPreviousArtifacts` will contain the artifacts of version `1.0.0`.
+- else, drop the qualifier part, that is any suffix like `-RC1` or `-M2` or `-alpha` or `-SNAPSHOT`
+  - if the resulting version ends with `.0.0`, which corresponds to a major version bump
+    like `1.0.0`, or `2.0.0`, `mimaPreviousArtifacts` is left empty,
+  - else, this is a minor or patch version bump, so the last numerical part of this version
+    is decreased by one, and used in `mimaPreviousArtifacts`. For instance, if `version` is
+    `1.2.0`, then `mimaPreviousArtifacts` will contain the artifacts of version `1.1.0`, and
+    if `version` is `1.2.3`, then `mimaPreviousArtifacts` will contain the artifacts of
+    version `1.2.2`.
+
+You can see the value of the previous version computed by the plugin by inspecting the key
+`versionPolicyPreviousVersions`.
+
+### Source incompatibilities detection
+
+[MiMa] can only detect binary incompatibilities. To detect source incompatibilities, this
+plugin uses MiMa in forward mode as an approximation. This is not always correct and may
+lead to false positives or false negatives. This is a known limitation of the current
+implementation.
+
+### Incompatibilities caused by removed or bumped dependencies
+
+The subtask `versionPolicyReportDependencyIssues` checks that you did not remove or
+bump your dependencies in an incompatible way. For instance, if your intention for
+the next release is to keep binary compatibility, you can only bump your dependencies
+to binary compatible versions.
 
 `versionPolicyReportDependencyIssues` compares the dependencies of `versionPolicyPreviousArtifacts` to the current ones.
 
 By default, `versionPolicyPreviousArtifacts` relies on `mimaPreviousArtifacts` from sbt-mima, so that only setting / changing `mimaPreviousArtifacts` is enough for both sbt-mima and sbt-version-policy.
 
-## Dependency compatibility adjustments
+### Dependency compatibility adjustments
 
-Set `versionPolicyDependencySchemes` to specify whether library dependency upgrades are compatible or not. For instance:
+Set `versionPolicyDependencySchemes` to specify the versioning scheme used by your libraries.
+For instance:
 
 ```scala
 versionPolicyDependencySchemes += "org.scala-lang" % "scala-compiler" % "strict"
 ```
 
-The following compatility types are available:
+The following compatibility types are available:
 - `early-semver`: assumes the matched modules follow a variant of [Semantic Versioning](https://semver.org) that enforces compatibility within 0.1.z,
 - `semver-spec`: assumes the matched modules follow [semantic versioning](https://semver.org),
 - `pvp`: assumes the matched modules follow [package versioning policy](https://pvp.haskell.org) (quite common in Scala),
@@ -128,3 +169,5 @@ as a compatibility type. Its default value is `VersionCompatibility.PackVer` (pa
 *sbt-version-policy* is funded by the [Scala Center](https://scala.epfl.ch).
 
 [recommended versioning scheme]: https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#recommended-versioning-scheme
+[MiMa]: https://github.com/lightbend/mima
+[sbt-dynver]: https://github.com/dwijnand/sbt-dynver
