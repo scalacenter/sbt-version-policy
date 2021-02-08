@@ -99,7 +99,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
           else Nil
         case None =>
           if (firstOpt.nonEmpty)
-            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set previousVersions or unset versionPolicyFirstVersion.""")
+            sys.error(s"""Cannot compute previous version from $ver. To fix that error, set versionPolicyPreviousVersions or unset versionPolicyFirstVersion.""")
           Nil
       }
     },

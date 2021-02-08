@@ -15,7 +15,6 @@ trait SbtVersionPolicyInternalKeys {
   final val versionPolicyIgnoreSbtDefaultReconciliations = settingKey[Boolean]("")
   final val versionPolicyUseCsrConfigReconciliations     = settingKey[Boolean]("")
 
-  final val versionPolicyAutoPreviousArtifacts     = taskKey[Seq[ModuleID]]("")
   final val versionPolicyPreviousArtifactsFromMima = taskKey[Seq[ModuleID]]("")
 
   final val versionPolicyDetailedReconciliations = taskKey[Seq[(ModuleMatchers, VersionCompatibility)]]("")

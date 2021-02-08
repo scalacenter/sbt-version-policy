@@ -102,12 +102,6 @@ object SbtVersionPolicySettings {
         .sortBy(_._1)
         .map(_._2)
     },
-    versionPolicyAutoPreviousArtifacts := {
-      val projId = projectID.value
-      versionPolicyPreviousVersions.value.map { version =>
-        projId.withRevision(version)
-      }
-    },
 
     versionPolicyPreviousArtifacts := versionPolicyPreviousArtifactsFromMima.value
   )
@@ -246,8 +240,8 @@ object SbtVersionPolicySettings {
       }
     },
     versionPolicyCheck := {
-      versionPolicyMimaCheck.value
-      versionPolicyReportDependencyIssues.value
+      val ignored1 = versionPolicyMimaCheck.value
+      val ignored2 = versionPolicyReportDependencyIssues.value
     },
     versionPolicyForwardCompatibilityCheck := {
       import MimaPlugin.autoImport._
@@ -286,8 +280,8 @@ object SbtVersionPolicySettings {
         case BinaryCompatible => MimaPlugin.autoImport.mimaReportBinaryIssues
         case BinaryAndSourceCompatible =>
           Def.task {
-            versionPolicyForwardCompatibilityCheck.value
-            MimaPlugin.autoImport.mimaReportBinaryIssues.value
+            val ignored1 = versionPolicyForwardCompatibilityCheck.value
+            val ignored2 = MimaPlugin.autoImport.mimaReportBinaryIssues.value
           }
         case None => Def.task { () } // skip mima if no compatibility is intented
       }
