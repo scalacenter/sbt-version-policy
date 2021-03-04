@@ -1,0 +1,5 @@
+package librarytest
+
+trait Foo {
+
+}

@@ -222,27 +222,39 @@ object SbtVersionPolicySettings {
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
     },
-    versionCheck := {
-      val intention =
-        versionPolicyIntention.?.value
-          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
-      val versionValue = version.value
-      val s            = streams.value
-      val projectId    = thisProject.value.id
-
-      if (Compatibility.isValidVersion(intention, versionValue)) {
-        s.log.info(s"$projectId/$versionValue is a valid version number with respect to the compatibility guarantees '$intention'")
+    versionCheck := Def.taskDyn {
+      if ((publish / skip).value) {
+        Def.task { }
       } else {
-        val detail =
-          if (intention == Compatibility.None) "You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release."
-          else "You must increment the minor version number to publish a source incompatible release."
-        throw new MessageOnlyException(s"$projectId/$versionValue is not a valid version number. $detail")
+        Def.task {
+          val intention =
+            versionPolicyIntention.?.value
+              .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
+          val versionValue = version.value
+          val s = streams.value
+          val projectId = thisProject.value.id
+
+          if (Compatibility.isValidVersion(intention, versionValue)) {
+            s.log.info(s"$projectId/$versionValue is a valid version number with respect to the compatibility guarantees '$intention'")
+          } else {
+            val detail =
+              if (intention == Compatibility.None) "You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release."
+              else "You must increment the minor version number to publish a source incompatible release."
+            throw new MessageOnlyException(s"$projectId/$versionValue is not a valid version number. $detail")
+          }
+        }
       }
-    },
-    versionPolicyCheck := {
-      val ignored1 = versionPolicyMimaCheck.value
-      val ignored2 = versionPolicyReportDependencyIssues.value
-    },
+    }.value,
+    versionPolicyCheck := Def.taskDyn {
+      if ((publish / skip).value) {
+        Def.task { }
+      } else {
+        Def.task {
+          val ignored1 = versionPolicyMimaCheck.value
+          val ignored2 = versionPolicyReportDependencyIssues.value
+        }
+      }
+    }.value,
     versionPolicyForwardCompatibilityCheck := {
       import MimaPlugin.autoImport._
       val it = MimaIssues.forwardBinaryIssuesIterator.value

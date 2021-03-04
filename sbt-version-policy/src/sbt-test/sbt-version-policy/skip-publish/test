@@ -1,0 +1,10 @@
+> v100/publishLocal
+> reload
+
+-> v101/versionPolicyCheck
+-> v101/versionCheck
+
+# If project is not published, no checks are performed and versionPolicyCheck and versionCheck succeed
+> set v101/publish/skip := true
+> v101/versionPolicyCheck
+> v101/versionCheck
