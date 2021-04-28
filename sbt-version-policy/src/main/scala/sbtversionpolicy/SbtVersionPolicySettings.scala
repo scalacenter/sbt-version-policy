@@ -222,7 +222,7 @@ object SbtVersionPolicySettings {
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
     },
-    versionCheck := Def.ifS((publish / skip).toTask)(Def.task {
+    versionCheck := Def.ifS((versionCheck / skip).toTask)(Def.task {
       ()
     })(Def.task {
       val intention =
@@ -241,7 +241,7 @@ object SbtVersionPolicySettings {
         throw new MessageOnlyException(s"$projectId/$versionValue is not a valid version number. $detail")
       }
     }).value,
-    versionPolicyCheck := Def.ifS((publish / skip).toTask)(Def.task {
+    versionPolicyCheck := Def.ifS((versionPolicyCheck / skip).toTask)(Def.task {
       ()
     })(Def.task {
       val ignored1 = versionPolicyMimaCheck.value
@@ -290,6 +290,11 @@ object SbtVersionPolicySettings {
         case None => Def.task { () } // skip mima if no compatibility is intented
       }
     }).value
+  )
+
+  def skipSettings = Seq(
+    versionCheck / skip := (publish / skip).value,
+    versionPolicyCheck / skip := (publish / skip).value
   )
 
   def schemesGlobalSettings = Seq(

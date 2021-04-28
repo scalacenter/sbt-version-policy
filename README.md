@@ -162,6 +162,26 @@ The following compatibility types are available:
 If no rules for a module are found in `versionPolicyDependencySchemes`, `versionPolicyDefaultScheme` is used
 as a compatibility type. Its default value is `VersionCompatibility.PackVer` (package versioning policy).
 
+### Disable the tasks `versionPolicyCheck` or `versionCheck` on a specific project
+
+You can disable the tasks `versionPolicyCheck` and `versionCheck` at the
+project level by using the `skip` key.
+
+By default, both `versionPolicyCheck / skip` and `versionCheck / skip` are
+initialized to `(publish / skip).value`. So, to disable both tasks on
+a given project, set the following:
+
+~~~ scala
+publish / skip := true
+~~~
+
+Or, if you need more fine-grained control:
+
+~~~ scala
+versionPolicyCheck / skip := true
+versionCheck / skip := true
+~~~
+
 ## Acknowledgments
 
 <img src="https://scala.epfl.ch/resources/img/scala-center-swirl.png" width="40px" />
