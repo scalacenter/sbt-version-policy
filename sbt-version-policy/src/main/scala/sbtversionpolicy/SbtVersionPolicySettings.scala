@@ -222,13 +222,15 @@ object SbtVersionPolicySettings {
       if (anyError)
         throw new Exception("Compatibility check failed (see messages above)")
     },
-    versionCheck := {
+    versionCheck := Def.ifS((versionCheck / skip).toTask)(Def.task {
+      ()
+    })(Def.task {
       val intention =
         versionPolicyIntention.?.value
           .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
       val versionValue = version.value
-      val s            = streams.value
-      val projectId    = thisProject.value.id
+      val s = streams.value
+      val projectId = thisProject.value.id
 
       if (Compatibility.isValidVersion(intention, versionValue)) {
         s.log.info(s"$projectId/$versionValue is a valid version number with respect to the compatibility guarantees '$intention'")
@@ -238,11 +240,13 @@ object SbtVersionPolicySettings {
           else "You must increment the minor version number to publish a source incompatible release."
         throw new MessageOnlyException(s"$projectId/$versionValue is not a valid version number. $detail")
       }
-    },
-    versionPolicyCheck := {
+    }).value,
+    versionPolicyCheck := Def.ifS((versionPolicyCheck / skip).toTask)(Def.task {
+      ()
+    })(Def.task {
       val ignored1 = versionPolicyMimaCheck.value
       val ignored2 = versionPolicyReportDependencyIssues.value
-    },
+    }).value,
     versionPolicyForwardCompatibilityCheck := {
       import MimaPlugin.autoImport._
       val it = MimaIssues.forwardBinaryIssuesIterator.value
@@ -286,6 +290,11 @@ object SbtVersionPolicySettings {
         case None => Def.task { () } // skip mima if no compatibility is intented
       }
     }).value
+  )
+
+  def skipSettings = Seq(
+    versionCheck / skip := (publish / skip).value,
+    versionPolicyCheck / skip := (publish / skip).value
   )
 
   def schemesGlobalSettings = Seq(

@@ -31,6 +31,7 @@ object SbtVersionPolicyPlugin extends AutoPlugin {
     SbtVersionPolicySettings.updateSettings ++
       SbtVersionPolicySettings.reconciliationSettings ++
       SbtVersionPolicySettings.previousArtifactsSettings ++
-      SbtVersionPolicySettings.findIssuesSettings
+      SbtVersionPolicySettings.findIssuesSettings ++
+      SbtVersionPolicySettings.skipSettings
 
 }
