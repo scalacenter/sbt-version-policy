@@ -15,7 +15,7 @@ object MimaIssues {
     val log = streams.value.log
     val previousClassfiles = mimaPreviousClassfiles.value
     val currentClassfiles = mimaCurrentClassfiles.value
-    val cp = fullClasspath.in(mimaFindBinaryIssues).value
+    val cp = (mimaFindBinaryIssues / fullClasspath).value
     val scalaVersionValue = scalaVersion.value
 
     if (previousClassfiles.isEmpty)

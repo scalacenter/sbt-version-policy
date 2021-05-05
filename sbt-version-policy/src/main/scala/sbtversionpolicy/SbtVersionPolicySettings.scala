@@ -31,7 +31,7 @@ object SbtVersionPolicySettings {
       .withReconciliation(Vector.empty),
     versionPolicyDependencyResolution := CoursierDependencyResolution(versionPolicyCsrConfiguration.value),
     versionPolicyUpdateConfiguration := updateConfiguration.value,
-    versionPolicyUnresolvedWarningConfiguration := unresolvedWarningConfiguration.in(update).value,
+    versionPolicyUnresolvedWarningConfiguration := (update / unresolvedWarningConfiguration).value,
     versionPolicyScalaModuleInfo := scalaModuleInfo.value
   )
 
