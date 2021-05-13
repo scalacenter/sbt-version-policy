@@ -10,7 +10,8 @@ inThisBuild(List(
       "",
       url("https://github.com/alexarchambault")
     )
-  )
+  ),
+  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 ))
 
 lazy val root = (project in file("."))
