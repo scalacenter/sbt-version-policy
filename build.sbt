@@ -37,4 +37,5 @@ lazy val `sbt-version-policy` = project
       "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
     testFrameworks += new TestFramework("verify.runner.Framework"),
+    versionPolicyIgnored += "org.scala-lang.modules" %% "scala-collection-compat" // Removed from MiMa 0.9.1
   )
