@@ -10,7 +10,8 @@ inThisBuild(List(
       "",
       url("https://github.com/alexarchambault")
     )
-  )
+  ),
+  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 ))
 
 lazy val root = (project in file("."))
@@ -25,13 +26,13 @@ lazy val `sbt-version-policy` = project
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
-    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.0"),
+    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.9.1"),
     libraryDependencies ++= Seq(
       "io.github.alexarchambault" %% "data-class" % "0.2.5" % Provided,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     ),
     libraryDependencies ++= Seq(
-      "io.get-coursier" % "interface" % "1.0.3",
+      "io.get-coursier" % "interface" % "1.0.4",
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
