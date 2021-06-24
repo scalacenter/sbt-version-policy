@@ -5,7 +5,7 @@ import sbt.Compile
 import sbt.librarymanagement.{ConfigurationReport, CrossVersion, ModuleID}
 import sbt.util.Logger
 import sbt.librarymanagement.{DependencyResolution, ScalaModuleInfo, UnresolvedWarningConfiguration, UpdateConfiguration}
-import sbtversionpolicy.DependencyCheckReport
+import sbtversionpolicy.{Compatibility, DependencyCheckReport}
 
 object DependencyCheck {
 
@@ -34,7 +34,37 @@ object DependencyCheck {
           (orgName, versions.head)
       }
 
+  @deprecated("This method is internal to sbt-version-policy", "1.1.0")
   def report(
+    currentModules: Map[(String, String), String],
+    previousModuleId: ModuleID,
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility,
+    sv: String,
+    sbv: String,
+    depRes: DependencyResolution,
+    scalaModuleInf: Option[ScalaModuleInfo],
+    updateConfig: UpdateConfiguration,
+    warningConfig: UnresolvedWarningConfiguration,
+    log: Logger
+  ): DependencyCheckReport =
+    report(
+      Compatibility.BinaryCompatible,
+      currentModules,
+      previousModuleId,
+      reconciliations,
+      defaultReconciliation,
+      sv,
+      sbv,
+      depRes,
+      scalaModuleInf,
+      updateConfig,
+      warningConfig,
+      log
+    )
+
+  private[sbtversionpolicy] def report(
+    compatibilityIntention: Compatibility,
     currentModules: Map[(String, String), String],
     previousModuleId: ModuleID,
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
@@ -72,6 +102,7 @@ object DependencyCheck {
       .toMap
 
     DependencyCheckReport(
+      compatibilityIntention,
       currentModules,
       previous,
       reconciliations,

@@ -1,0 +1,12 @@
+> a/publishLocal
+-> b/versionPolicyReportDependencyIssues
+> c/versionPolicyReportDependencyIssues
+
+> d/publishLocal
+-> e/versionPolicyReportDependencyIssues
+> f/versionPolicyReportDependencyIssues
+> f/publishLocal
+> g/versionPolicyReportDependencyIssues
+> g/publishLocal
+-> h/versionPolicyReportDependencyIssues
+> i/versionPolicyReportDependencyIssues

@@ -1,3 +1,5 @@
+ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
+
 lazy val v1 = project
   .settings(
     check := {},
