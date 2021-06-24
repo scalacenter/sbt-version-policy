@@ -1,6 +1,6 @@
 package sbtversionpolicy
 
-import coursier.version.{ModuleMatchers, VersionCompatibility}
+import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
 import dataclass.data
 import lmcoursier.definitions.{ModuleMatchers => _, _}
 
@@ -61,31 +61,63 @@ object DependencyCheckReport {
     def message = "missing dependency"
   }
 
-
+  @deprecated("This method is internal.", "1.1.0")
   def apply(
+    currentModules: Map[(String, String), String],
+    previousModules: Map[(String, String), String],
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility
+  ): DependencyCheckReport =
+    apply(
+      Compatibility.BinaryCompatible,
+      currentModules,
+      previousModules,
+      reconciliations,
+      defaultReconciliation
+    )
+
+  private[sbtversionpolicy] def apply(
+    compatibilityIntention: Compatibility,
     currentModules: Map[(String, String), String],
     previousModules: Map[(String, String), String],
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
     defaultReconciliation: VersionCompatibility
   ): DependencyCheckReport = {
 
-    val backward = moduleStatuses(currentModules, previousModules, reconciliations, defaultReconciliation)
-    val forward = moduleStatuses(currentModules, previousModules, reconciliations, defaultReconciliation)
+    // FIXME These two lines compute the same result. What is the reason for having two directions?
+    val backward = moduleStatuses(compatibilityIntention, currentModules, previousModules, reconciliations, defaultReconciliation)
+    val forward = moduleStatuses(compatibilityIntention, currentModules, previousModules, reconciliations, defaultReconciliation)
 
     DependencyCheckReport(backward, forward)
   }
 
+  @deprecated("This method is internal.", "1.1.0")
   def moduleStatuses(
     currentModules: Map[(String, String), String],
     previousModules: Map[(String, String), String],
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
     defaultReconciliation: VersionCompatibility
   ): Map[(String, String), ModuleStatus] =
-    for ((orgName @ (org, name), ver) <- previousModules) yield {
+    moduleStatuses(
+      Compatibility.BinaryCompatible,
+      currentModules,
+      previousModules,
+      reconciliations,
+      defaultReconciliation
+    )
 
-      val status = currentModules.get(orgName) match {
-        case None => Missing(ver)
-        case Some(`ver`) => SameVersion(ver)
+  private def moduleStatuses(
+    compatibilityIntention: Compatibility,
+    currentModules: Map[(String, String), String],
+    previousModules: Map[(String, String), String],
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility
+  ): Map[(String, String), ModuleStatus] =
+    for ((orgAndName @ (org, name), previousVersion) <- previousModules) yield {
+
+      val status = currentModules.get(orgAndName) match {
+        case None => Missing(previousVersion)
+        case Some(`previousVersion`) => SameVersion(previousVersion)
         case Some(currentVersion) =>
           val reconciliation = reconciliations
             .collectFirst {
@@ -93,12 +125,52 @@ object DependencyCheckReport {
                 rec
             }
             .getOrElse(defaultReconciliation)
-          if (reconciliation.isCompatible(ver, currentVersion))
-            CompatibleVersion(currentVersion, ver, reconciliation)
+          val isCompatible =
+            if (compatibilityIntention == Compatibility.BinaryAndSourceCompatible) {
+              isBinaryCompatible(currentVersion, previousVersion, reconciliation) &&
+                isSourceCompatible(currentVersion, previousVersion, reconciliation)
+            } else {
+              isBinaryCompatible(currentVersion, previousVersion, reconciliation)
+            }
+          if (isCompatible)
+            CompatibleVersion(currentVersion, previousVersion, reconciliation)
           else
-            IncompatibleVersion(currentVersion, ver, reconciliation)
+            IncompatibleVersion(currentVersion, previousVersion, reconciliation)
       }
 
-      orgName -> status
+      orgAndName -> status
     }
+
+  private def isBinaryCompatible(currentVersion: String, previousVersion: String, versionCompatibility: VersionCompatibility): Boolean =
+    versionCompatibility.isCompatible(previousVersion, currentVersion)
+
+  private[sbtversionpolicy] def isSourceCompatible(currentVersion: String, previousVersion: String, versionCompatibility: VersionCompatibility): Boolean =
+    versionCompatibility match {
+      case VersionCompatibility.Always =>
+        true
+      case VersionCompatibility.Strict | VersionCompatibility.Default | VersionCompatibility.PackVer =>
+        // In PVP, any release can break source compatibility
+        previousVersion == currentVersion
+      case VersionCompatibility.SemVer | VersionCompatibility.EarlySemVer | VersionCompatibility.SemVerSpec =>
+        // Early SemVer and SemVer Spec are equivalent regarding source compatibility
+        extractSemVerNumbers(currentVersion).zip(extractSemVerNumbers(previousVersion)).headOption match {
+          case Some(((currentMajor, currentMinor, currentPatch), (previousMajor, previousMinor, previousPatch))) =>
+            currentMajor == previousMajor && {
+              if (currentMajor == 0)
+                currentMinor == previousMinor && currentPatch == previousPatch
+              else
+                currentMinor == previousMinor && currentPatch >= previousPatch
+            }
+          case None => currentVersion == previousVersion
+        }
+    }
+
+  private def extractSemVerNumbers(versionString: String): Option[(Int, Int, Int)] = {
+    val version = Version(versionString)
+    if (version.items.size == 3 && version.items.forall(_.isInstanceOf[Version.Number])) {
+      val Seq(major, minor, patch) = version.items.collect { case num: Version.Number => num.value }
+      Some((major, minor, patch))
+    } else None // Not a normalized version number (e.g., 1.0.0-RC1)
+  }
+
 }

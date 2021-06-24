@@ -117,7 +117,9 @@ object SbtVersionPolicySettings {
         sys.error("Compile configuration not found in update report")
       }
 
-      val maybeCompatibilityIntention = versionPolicyIntention.?.value
+      val compatibilityIntention =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
       val depRes = versionPolicyDependencyResolution.value
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
@@ -166,13 +168,14 @@ object SbtVersionPolicySettings {
       val previousModuleIds = versionPolicyPreviousArtifacts.value
 
       // Skip dependency check if no compatibility is intended
-      if (maybeCompatibilityIntention.contains(Compatibility.None)) Nil else {
+      if (compatibilityIntention == Compatibility.None) Nil else {
 
         val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
         previousModuleIds.map { previousModuleId =>
 
           val report0 = DependencyCheck.report(
+            compatibilityIntention,
             currentModules,
             previousModuleId,
             reconciliations,
@@ -196,6 +199,9 @@ object SbtVersionPolicySettings {
       val sbv = scalaBinaryVersion.value
       val direction = versionPolicyCheckDirection.value
       val reports = versionPolicyFindDependencyIssues.value
+      val intention =
+        versionPolicyIntention.?.value
+          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
 
       if (reports.isEmpty)
         log.warn(s"No dependency check reports found (empty versionPolicyPreviousArtifacts?).")
@@ -213,7 +219,7 @@ object SbtVersionPolicySettings {
         val (warnings, errors) = report.errors(direction, ignored)
         if (errors.nonEmpty) {
           anyError = true
-          log.error(s"Incompatibilities with $previousModule")
+          log.error(s"Incompatibilities with $previousModule with respect to compatibility intention ${intention}")
           for (error <- errors)
             log.error("  " + error)
         }
