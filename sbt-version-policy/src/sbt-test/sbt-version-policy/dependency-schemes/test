@@ -1,0 +1,5 @@
+> a1/publishLocal
+> a2/publishLocal
+> b1/publishLocal
+> reload
+> b2/versionPolicyReportDependencyIssues
