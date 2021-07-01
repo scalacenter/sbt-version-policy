@@ -6,8 +6,7 @@ import sbt._
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
-import lmcoursier.definitions.Reconciliation
-import sbtversionpolicy.internal.{DependencyCheck, MimaIssues}
+import sbtversionpolicy.internal.{DependencyCheck, DependencySchemes, MimaIssues}
 import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
 
 import scala.util.Try
@@ -108,7 +107,6 @@ object SbtVersionPolicySettings {
 
   def findIssuesSettings = Def.settings(
     versionPolicyFindDependencyIssues := {
-
       val log = streams.value.log
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -125,52 +123,24 @@ object SbtVersionPolicySettings {
       val updateConfig = versionPolicyUpdateConfiguration.value
       val warningConfig = versionPolicyUnresolvedWarningConfiguration.value
 
-      val reconciliations = {
-        val csrConfig = csrConfiguration.value
-        val useCsrConfigReconciliations = versionPolicyUseCsrConfigReconciliations.value
-        val ignoreSbtDefaultReconciliations = versionPolicyIgnoreSbtDefaultReconciliations.value
+      val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
-        val fromCsrConfig =
-          if (useCsrConfigReconciliations) {
-            if (ignoreSbtDefaultReconciliations)
-              csrConfig.reconciliation
-                .filter {
-                  val default = sbt.coursierint.LMCoursier.relaxedForAllModules.toSet
-                  rule => !default(rule)
-                }
-            else
-              csrConfig.reconciliation
-          } else
-            Nil
-
-        val fromCsrConfig0 = fromCsrConfig.map {
-          case (m, r) =>
-            val matcher = ModuleMatchers(
-              m.exclude.map(m => ModuleMatcher(m.organization.value, m.name.value, m.attributes)),
-              m.include.map(m => ModuleMatcher(m.organization.value, m.name.value, m.attributes)),
-              includeByDefault = m.includeByDefault
-            )
-            val compatibility = r match {
-              case Reconciliation.Default => VersionCompatibility.Default
-              case Reconciliation.Relaxed => VersionCompatibility.Always
-              case Reconciliation.SemVer  => VersionCompatibility.EarlySemVer
-              case Reconciliation.Strict  => VersionCompatibility.Strict
-            }
-            (matcher, compatibility)
-        }
-
-        val ours = versionPolicyDetailedReconciliations.value
-        val fallback = versionPolicyFallbackReconciliations.value
-
-        ours ++ fromCsrConfig0 ++ fallback
-      }
+      val reconciliations =
+        DependencySchemes(
+          csrConfiguration.value,
+          compileReport,
+          versionPolicyUseCsrConfigReconciliations.value,
+          versionPolicyIgnoreSbtDefaultReconciliations.value,
+          currentModules,
+          versionPolicyDetailedReconciliations.value,
+          versionPolicyFallbackReconciliations.value,
+          log
+        )
 
       val previousModuleIds = versionPolicyPreviousArtifacts.value
 
       // Skip dependency check if no compatibility is intended
       if (compatibilityIntention == Compatibility.None) Nil else {
-
-        val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
 
         previousModuleIds.map { previousModuleId =>
 
