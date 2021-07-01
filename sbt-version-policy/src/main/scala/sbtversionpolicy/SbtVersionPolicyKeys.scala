@@ -17,7 +17,7 @@ trait SbtVersionPolicyKeys {
   final val versionPolicyIgnored        = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")
   final val versionPolicyCheckDirection = settingKey[Direction]("Direction to check the version compatibility. Default: Direction.backward.")
 
-  // TODO Remove/deprecate when sbt 1.5.0 is out and use libraryDependencySchemes instead
+  @deprecated("Use libraryDependencySchemes instead", "1.1.0")
   final val versionPolicyDependencySchemes        = settingKey[Seq[ModuleID]]("""Versioning schemes for the library dependencies (e.g. "org.scala-lang" % "scala-compiler" % "strict")""")
   final val versionPolicyDefaultScheme            = settingKey[Option[VersionCompatibility]]("Fallback reconciliation used to evaluate version policy issues in the library dependency.")
   final val versionPolicyDefaultDependencySchemes = settingKey[Seq[ModuleID]]("Fallback rules used to evaluate version policy issues in the library dependency.")

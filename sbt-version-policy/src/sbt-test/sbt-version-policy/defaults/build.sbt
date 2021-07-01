@@ -40,7 +40,7 @@ lazy val bumpScalaAndAddRule = project
       "com.fasterxml.jackson.core" % "jackson-databind" % "2.10.4"
     ),
     version := "0.1.1",
-    versionPolicyDependencySchemes += "org.scala-lang.modules" %% "*" % "early-semver"
+    libraryDependencySchemes += "org.scala-lang.modules" %% "*" % "early-semver"
   )
 
 inThisBuild(List(

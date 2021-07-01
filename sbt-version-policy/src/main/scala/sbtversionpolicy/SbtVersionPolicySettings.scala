@@ -1,7 +1,7 @@
 package sbtversionpolicy
 
 import com.typesafe.tools.mima.plugin.{MimaPlugin, SbtMima}
-import coursier.version.{ModuleMatcher, ModuleMatchers, Version, VersionCompatibility}
+import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
 import sbt._
 import sbt.Keys._
 import sbt.librarymanagement.CrossVersion
@@ -53,6 +53,7 @@ object SbtVersionPolicySettings {
   )
 
   def reconciliationSettings = Def.settings(
+    versionPolicyDependencySchemes := libraryDependencySchemes.value,
     versionPolicyFallbackReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -274,7 +275,6 @@ object SbtVersionPolicySettings {
   )
 
   def schemesGlobalSettings = Seq(
-    versionPolicyDependencySchemes := Seq.empty,
     versionScheme := Some("early-semver")
   )
 

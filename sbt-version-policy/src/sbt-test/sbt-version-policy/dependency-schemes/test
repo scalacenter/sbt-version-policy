@@ -3,3 +3,4 @@
 > b1/publishLocal
 > reload
 > b2/versionPolicyReportDependencyIssues
+-> b3/versionPolicyReportDependencyIssues

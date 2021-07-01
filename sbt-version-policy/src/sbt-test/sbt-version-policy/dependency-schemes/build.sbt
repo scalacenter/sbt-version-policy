@@ -27,3 +27,12 @@ val b2 = project
     versionPolicyIntention := Compatibility.BinaryCompatible
   )
   .dependsOn(a2)
+
+val b3 = project
+  .settings(
+    name := "dependency-schemes-test-b",
+    version := "1.1.0",
+    versionPolicyIntention := Compatibility.BinaryCompatible,
+    libraryDependencySchemes += "ch.epfl.scala" %% "dependency-schemes-test-a" % "pvp"
+  )
+  .dependsOn(a2)
