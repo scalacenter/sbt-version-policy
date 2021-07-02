@@ -3,7 +3,6 @@ package sbtversionpolicy.internal
 import coursier.version.{ModuleMatcher, ModuleMatchers, VersionCompatibility}
 import lmcoursier.CoursierConfiguration
 import lmcoursier.definitions.Reconciliation
-import sbt.internal.librarymanagement.mavenint.SbtPomExtraProperties
 import sbt.librarymanagement.{ConfigurationReport, ModuleReport}
 import sbt.util.Logger
 
@@ -72,7 +71,7 @@ private[sbtversionpolicy] object DependencySchemes {
   private def findVersionScheme(moduleReport: ModuleReport): Option[VersionCompatibility] =
     moduleReport
       .extraAttributes
-      .get(SbtPomExtraProperties.VERSION_SCHEME_KEY)
+      .get("info.versionScheme")
       .flatMap(VersionCompatibility(_))
 
 }
