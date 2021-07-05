@@ -8,6 +8,8 @@ This plugin:
 
 ## Install
 
+Make sure your project uses a version of sbt higher than 1.5.0.
+
 Add to your `project/plugins.sbt`:
 
 ```scala
