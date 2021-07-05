@@ -85,7 +85,7 @@ lazy val f = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    versionPolicyDependencySchemes += "com.chuusai" %% "shapeless" % "strict",
+    libraryDependencySchemes += "com.chuusai" %% "shapeless" % "strict",
     version := "0.1.1"
   )
 
@@ -96,7 +96,7 @@ lazy val g = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    versionPolicyDependencySchemes += "com.chuusai" %% "shapeless" % "pvp",
+    libraryDependencySchemes += "com.chuusai" %% "shapeless" % "pvp",
     version := "0.1.1"
   )
 
@@ -107,7 +107,7 @@ lazy val h = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    versionPolicyDependencySchemes += "com.chuusai" %% "shapeless" % "strict",
+    libraryDependencySchemes += "com.chuusai" %% "shapeless" % "strict",
     version := "0.1.0+3-1234abcd" // Version number typically produced by sbt-dynver
   )
 

@@ -92,6 +92,6 @@ lazy val i = project
 
 inThisBuild(List(
   scalaVersion := "2.12.11",
-  versionPolicyDependencySchemes += "org.typelevel" %% "cats-kernel" % "semver-spec",
+  libraryDependencySchemes += "org.typelevel" %% "cats-kernel" % "semver-spec",
   organization := "io.github.alexarchambault.sbtversionpolicy.test",
 ))
