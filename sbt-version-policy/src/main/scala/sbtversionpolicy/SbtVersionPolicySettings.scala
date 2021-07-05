@@ -53,7 +53,7 @@ object SbtVersionPolicySettings {
   )
 
   def reconciliationSettings = Def.settings(
-    versionPolicyDependencySchemes := libraryDependencySchemes.value,
+    versionPolicyDependencySchemes ++= libraryDependencySchemes.value,
     versionPolicyFallbackReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -275,6 +275,7 @@ object SbtVersionPolicySettings {
   )
 
   def schemesGlobalSettings = Seq(
+    versionPolicyDependencySchemes := Seq.empty,
     versionScheme := Some("early-semver")
   )
 
