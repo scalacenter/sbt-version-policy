@@ -90,6 +90,72 @@ if your intention is to publish a release that breaks binary compatibility,
 the task `versionCheck` will fail if you didn’t bump the major version
 number.
 
+## How to integrate with `sbt-ci-release`?
+
+sbt-version-policy itself uses sbt-version-policy and [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release).
+You can have a look at our [Github workflow](./.github/workflows/ci.yml) as an example of integration.
+
+The key step is to run the task `versionCheck` before running the command `ci-release` (assuming the task
+`versionPolicyCheck` has run already, in another step of the CI pipeline):
+
+~~~ yaml
+steps
+  - name: Release
+    run: sbt versionCheck ci-release
+~~~
+
+You can also have a look at the test [example-sbt-ci-release](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-ci-release)
+for a minimalistic sbt project using both sbt-version-policy and sbt-ci-release.
+
+## How to integrate with `sbt-release`?
+
+[sbt-release](https://github.com/sbt/sbt-release) is able to run sophisticated release pipelines
+including running the tests, setting the release version, publishing the artifacts, and pushing
+a Git tag named after the release version.
+
+You can have a look at the test [example-sbt-release](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-release)
+for an example of sbt project using both sbt-version-policy and sbt-release.
+
+This example project customizes sbt-release to:
+
+1. Compute the release version based on its compatibility guarantees (as per `versionPolicyIntention`).
+   
+   We achieve this by setting `releaseVersion` like the following:
+
+   ~~~ scala
+   releaseVersion := {
+     val maybeBump = versionPolicyIntention.value match {
+        case Compatibility.None                      => Some(Version.Bump.Major)
+        case Compatibility.BinaryCompatible          => Some(Version.Bump.Minor)
+        case Compatibility.BinaryAndSourceCompatible => None // No need to bump the patch version, because it has already been bumped when sbt-release set the next release version
+      }
+      { (currentVersion: String) =>
+        val versionWithoutQualifier =
+          Version(currentVersion)
+            .getOrElse(versionFormatError(currentVersion))
+            .withoutQualifier
+        (maybeBump match {
+          case Some(bump) => versionWithoutQualifier.bump(bump)
+          case None       => versionWithoutQualifier
+        }).string
+      }
+   }
+   ~~~
+
+2. Run `versionCheck` after setting the release version, by adding the following
+   release step:
+
+   ~~~ scala
+   releaseStepCommand("versionCheck")
+   ~~~ 
+
+3. Reset `versionPolicyIntention` to `Compatibility.BinaryAndSourceCompatible` after
+   every release.
+   
+   We achieve this by managing the setting `versionPolicyIntention` in a separate file
+   (like sbt-release manages the setting `version` in a separate file, by default),
+   and by adding a step that overwrites the content of that file and commits it.
+
 ## How does `versionPolicyCheck` work?
 
 The `versionPolicyCheck` task:

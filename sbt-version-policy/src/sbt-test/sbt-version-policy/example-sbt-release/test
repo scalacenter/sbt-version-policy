@@ -1,0 +1,22 @@
+# Setup repository
+$ exec git init
+$ exec git config user.email "email"
+$ exec git config user.name "name"
+
+$ exec git add .
+$ exec git commit -m "Initial commit"
+> reload
+
+# First release: typically, your release pipeline would execute `sbt "release with-defaults"`
+> release with-defaults
+> checkTag_1_0_0
+> reload
+
+# New contributions
+$ exec git commit --allow-empty -m "Some hard work"
+# Typically, your CI pipeline would execute `sbt versionPolicyCheck`
+> versionPolicyCheck
+
+# Second release: same process as first release
+> release with-defaults
+> checkTag_1_0_1

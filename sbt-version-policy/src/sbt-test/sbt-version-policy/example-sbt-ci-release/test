@@ -1,0 +1,33 @@
+# Setup repository
+$ exec git init
+$ exec git config user.email "email"
+$ exec git config user.name "name"
+
+# Before first release, set `versionPolicyIntention` to `Compatibility.None` because
+# there is no previous release to compare to.
+$ exec sed -i 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.None/' build.sbt
+
+$ exec git add .
+$ exec git commit -m "Initial commit"
+
+# First release: create a Git tag, and run `versionCheck` and then `ci-release`
+$ exec git tag v1.0.0
+> reload
+# Typically, your release pipeline would execute `sbt versionCheck ci-release`
+> versionCheck
+> ci-release
+
+# Reset compatibility intention after release
+$ exec sed -i 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.BinaryAndSourceCompatible/' build.sbt
+
+# New contributions
+$ exec git commit -a -m "Some hard work"
+> reload
+# Typically, your CI pipeline would execute `sbt versionPolicyCheck`
+> versionPolicyCheck
+
+# Second release: same process as first release
+$ exec git tag v1.0.1
+> reload
+> versionCheck
+> ci-release
