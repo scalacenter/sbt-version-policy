@@ -1,0 +1,22 @@
+# Setup repository
+$ exec git init
+$ exec git config user.email "email"
+$ exec git config user.name "name"
+
+$ exec git add .
+$ exec git commit -m "Initial commit"
+
+# First release: create a Git tag, and run `versionCheck` and then `publishLocal`
+$ exec git tag v1.0.0
+> reload
+> versionCheck
+> publishLocal
+
+# Reset compatibility intention after release
+$ exec sed -i 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.BinaryAndSourceCompatible/' build.sbt
+
+# New contributions
+$ exec git commit -a -m "Some hard work"
+> reload
+# Typically, your CI pipeline would execute `sbt versionPolicyCheck`
+> versionPolicyCheck
