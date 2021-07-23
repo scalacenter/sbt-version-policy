@@ -49,7 +49,8 @@ object SbtVersionPolicySettings {
     versionPolicyUseCsrConfigReconciliations := true,
     versionPolicyDefaultDependencySchemes := defaultSchemes,
     versionPolicyIgnored := Seq.empty,
-    versionPolicyDefaultScheme := None
+    versionPolicyDefaultScheme := None,
+    versionPolicyIgnoredInternalDependencyVersions := None
   )
 
   def reconciliationSettings = Def.settings(
@@ -123,8 +124,9 @@ object SbtVersionPolicySettings {
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
       val warningConfig = versionPolicyUnresolvedWarningConfiguration.value
+      val excludedModules = ignoredModulesOfCurrentBuild.value
 
-      val currentModules = DependencyCheck.modulesOf(compileReport, sv, sbv, log)
+      val currentDependencies = DependencyCheck.modulesOf(compileReport, excludedModules, sv, sbv, log)
 
       val reconciliations =
         DependencySchemes(
@@ -132,7 +134,7 @@ object SbtVersionPolicySettings {
           compileReport,
           versionPolicyUseCsrConfigReconciliations.value,
           versionPolicyIgnoreSbtDefaultReconciliations.value,
-          currentModules,
+          currentDependencies,
           versionPolicyDetailedReconciliations.value,
           versionPolicyFallbackReconciliations.value,
           log
@@ -147,7 +149,8 @@ object SbtVersionPolicySettings {
 
           val report0 = DependencyCheck.report(
             compatibilityIntention,
-            currentModules,
+            excludedModules,
+            currentDependencies,
             previousModuleId,
             reconciliations,
             VersionCompatibility.Strict,
@@ -308,6 +311,40 @@ object SbtVersionPolicySettings {
     versionPolicyDependencySchemes := Seq.empty,
     versionScheme := Some("early-semver")
   )
+
+  /** All the modules (as pairs of organization name and artifact name) defined
+    * by the current build definition, and whose version number matches the regex
+    * defined by the key `versionPolicyIgnoredInternalDependencyVersions`.
+    */
+  private val ignoredModulesOfCurrentBuild: Def.Initialize[Set[(String, String)]] = Def.settingDyn {
+    val allProjectRefs = loadedBuild.value.allProjectRefs
+    versionPolicyIgnoredInternalDependencyVersions.value match {
+      case Some(versionRegex) =>
+        allProjectRefs.foldLeft(Def.setting(Set.empty[(String, String)])) { case (previousModules, (projectRef, _)) =>
+          Def.setting {
+            val projectOrganization       = (projectRef / organization).value
+            val projectName               = (projectRef / moduleName).value
+            val projectVersion            = (projectRef / version).value
+            val projectCrossVersion       = (projectRef / crossVersion).value
+            val projectScalaVersion       = (projectRef / scalaVersion).value
+            val projectScalaBinaryVersion = (projectRef / scalaBinaryVersion).value
+            if (versionRegex.findFirstMatchIn(projectVersion).isDefined) {
+              val nameWithBinarySuffix =
+                CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
+                  .fold(projectName)(_(projectName))
+              val module = projectOrganization -> nameWithBinarySuffix
+              previousModules.value + module
+            } else {
+              // Don’t include the module if its version does not match the regex
+              previousModules.value
+            }
+          }
+        }
+      case None =>
+        // versionPolicyIgnoredInternalDependencyVersions is unset
+        Def.setting(Set.empty)
+    }
+  }
 
   private def nameAndRevision(moduleID: ModuleID): String = s"${moduleID.name}:${moduleID.revision}"
 

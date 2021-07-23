@@ -1,38 +1,26 @@
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / organization := "ch.epfl.scala"
 
-val a1 = project
-  .settings(
-    name := "dependency-schemes-test-a",
-    version := "1.0.0"
-  )
-
-val a2 = project
-  .settings(
-    name := "dependency-schemes-test-a",
-    version := "1.1.0"
-  )
-
 val b1 = project
   .settings(
     name := "dependency-schemes-test-b",
-    version := "1.0.0"
+    version := "1.0.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % "2.4.4",
   )
-  .dependsOn(a1)
 
 val b2 = project
   .settings(
     name := "dependency-schemes-test-b",
     version := "1.1.0",
-    versionPolicyIntention := Compatibility.BinaryCompatible
+    versionPolicyIntention := Compatibility.BinaryCompatible,
+    libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0",
   )
-  .dependsOn(a2)
 
 val b3 = project
   .settings(
     name := "dependency-schemes-test-b",
     version := "1.1.0",
     versionPolicyIntention := Compatibility.BinaryCompatible,
-    libraryDependencySchemes += "ch.epfl.scala" %% "dependency-schemes-test-a" % "pvp"
+    libraryDependencies += "org.scala-lang.modules" %% "scala-collection-compat" % "2.5.0",
+    libraryDependencySchemes += "org.scala-lang.modules" %% "scala-collection-compat" % "pvp"
   )
-  .dependsOn(a2)
