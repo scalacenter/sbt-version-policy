@@ -9,8 +9,18 @@ import sbtversionpolicy.{Compatibility, DependencyCheckReport}
 
 object DependencyCheck {
 
+  @deprecated("This method is internal to sbt-version-policy", "1.2.0")
   def modulesOf(
     report: ConfigurationReport,
+    scalaVersion: String,
+    scalaBinaryVersion: String,
+    log: Logger
+  ): Map[(String, String), String] =
+    modulesOf(report, Set.empty, scalaVersion, scalaBinaryVersion, log)
+
+  private[sbtversionpolicy] def modulesOf(
+    report: ConfigurationReport,
+    excludedModules: Set[(String, String)],
     scalaVersion: String,
     scalaBinaryVersion: String,
     log: Logger
@@ -19,6 +29,7 @@ object DependencyCheck {
       .modules
       .filter(!_.evicted)
       .map(_.module)
+      .filter(module => !excludedModules.contains(module.organization -> module.name))
       .map { mod =>
         val name = CrossVersion(mod.crossVersion, scalaVersion, scalaBinaryVersion)
           .fold(mod.name)(_(mod.name))
@@ -50,6 +61,7 @@ object DependencyCheck {
   ): DependencyCheckReport =
     report(
       Compatibility.BinaryCompatible,
+      Set.empty,
       currentModules,
       previousModuleId,
       reconciliations,
@@ -65,7 +77,8 @@ object DependencyCheck {
 
   private[sbtversionpolicy] def report(
     compatibilityIntention: Compatibility,
-    currentModules: Map[(String, String), String],
+    excludedModules: Set[(String, String)],
+    currentDependencies: Map[(String, String), String],
     previousModuleId: ModuleID,
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
     defaultReconciliation: VersionCompatibility,
@@ -94,7 +107,7 @@ object DependencyCheck {
     val previousCompileReport = previousReport.configuration(Compile).getOrElse {
       sys.error(s"Compile configuration not found in previous update report $previousReport")
     }
-    val previous = DependencyCheck.modulesOf(previousCompileReport, sv, sbv, log)
+    val previousDependencies = DependencyCheck.modulesOf(previousCompileReport, excludedModules, sv, sbv, log)
       .filterKeys {
         case (org, name) =>
           org != previousModuleId0.organization || name != previousModuleId0.name
@@ -103,8 +116,8 @@ object DependencyCheck {
 
     DependencyCheckReport(
       compatibilityIntention,
-      currentModules,
-      previous,
+      currentDependencies,
+      previousDependencies,
       reconciliations,
       defaultReconciliation
     )

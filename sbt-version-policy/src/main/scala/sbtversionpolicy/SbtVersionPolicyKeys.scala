@@ -4,6 +4,8 @@ import coursier.version.VersionCompatibility
 import sbt._
 import sbt.librarymanagement.DependencyBuilders.OrganizationArtifactName
 
+import scala.util.matching.Regex
+
 trait SbtVersionPolicyKeys {
   final val versionPolicyIntention              = settingKey[Compatibility]("Compatibility intentions for the next release.")
   final val versionPolicyPreviousArtifacts      = taskKey[Seq[ModuleID]]("")
@@ -16,6 +18,8 @@ trait SbtVersionPolicyKeys {
 
   final val versionPolicyIgnored        = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")
   final val versionPolicyCheckDirection = settingKey[Direction]("Direction to check the version compatibility. Default: Direction.backward.")
+  // Note: defined as a def because adding a val to a trait is not binary compatible
+  final def versionPolicyIgnoredInternalDependencyVersions = SettingKey[Option[Regex]]("versionPolicyIgnoredInternalDependencyVersions", "Exclude dependencies to projects of the current build whose version matches this regular expression.")
 
   @deprecated("Use libraryDependencySchemes instead", "1.1.0")
   final val versionPolicyDependencySchemes        = settingKey[Seq[ModuleID]]("""Versioning schemes for the library dependencies (e.g. "org.scala-lang" % "scala-compiler" % "strict")""")

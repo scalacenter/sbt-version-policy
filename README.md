@@ -107,6 +107,31 @@ steps
 You can also have a look at the test [example-sbt-ci-release](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-ci-release)
 for a minimalistic sbt project using both sbt-version-policy and sbt-ci-release.
 
+Last, since `sbt-ci-release` uses `sbt-dynver` under the hood, please
+read over the next section.
+
+## How to integrate with `sbt-dynver`?
+
+`sbt-dynver` generates version numbers looking like `1.2.3+4-abcd1234` when the Git history
+contains commits, or changes, after the last tag.
+
+These version numbers are usually not a problem, except when checking for dependency issues
+between projects of the current build (e.g., if a project `a` depends on another project `b`
+in the current build). In such a case, `sbt-version-policy` might report a false incompatibility
+when checking the dependencies of `a` (because the project `b` now has a non-normalized version
+number, from which we are unable to draw any conclusions).
+
+To solve this issue, you can tell `sbt-version-policy` to ignore the dependencies to internal
+projects when their version number matches some regular expression:
+
+~~~ scala
+// Ignore dependencies to internal modules whose version is like `1.2.3+4...`
+ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
+~~~
+
+You can also have a look at the test [example-sbt-dynver](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-dynver)
+for a minimalistic sbt project using both sbt-version-policy and sbt-dynver.
+
 ## How to integrate with `sbt-release`?
 
 [sbt-release](https://github.com/sbt/sbt-release) is able to run sophisticated release pipelines
