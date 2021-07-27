@@ -321,7 +321,7 @@ object SbtVersionPolicySettings {
     versionPolicyIgnoredInternalDependencyVersions.value match {
       case Some(versionRegex) =>
         allProjectRefs.foldLeft(Def.setting(Set.empty[(String, String)])) { case (previousModules, (projectRef, _)) =>
-          Def.setting {
+          Def.settingDyn {
             val projectOrganization       = (projectRef / organization).value
             val projectName               = (projectRef / moduleName).value
             val projectVersion            = (projectRef / version).value
@@ -333,10 +333,10 @@ object SbtVersionPolicySettings {
                 CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
                   .fold(projectName)(_(projectName))
               val module = projectOrganization -> nameWithBinarySuffix
-              previousModules.value + module
+              Def.setting(previousModules.value + module)
             } else {
               // Don’t include the module if its version does not match the regex
-              previousModules.value
+              Def.setting(previousModules.value)
             }
           }
         }
