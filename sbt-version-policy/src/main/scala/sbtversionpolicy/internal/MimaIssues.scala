@@ -15,6 +15,7 @@ object MimaIssues {
     val log = streams.value.log
     val previousClassfiles = mimaPreviousClassfiles.value
     val currentClassfiles = mimaCurrentClassfiles.value
+    val excludeAnnotations = mimaExcludeAnnotations.value
     val cp = (mimaFindBinaryIssues / fullClasspath).value
     val scalaVersionValue = scalaVersion.value
 
@@ -31,7 +32,8 @@ object MimaIssues {
             cp,
             "forward",
             scalaVersionValue,
-            log
+            log,
+            excludeAnnotations.toList
           )
       }
       .filter {
