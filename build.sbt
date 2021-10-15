@@ -11,7 +11,8 @@ inThisBuild(List(
       url("https://github.com/alexarchambault")
     )
   ),
-  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+  libraryDependencySchemes += "com.typesafe" %% "mima-core" % "semver-spec"
 ))
 
 lazy val root = (project in file("."))
@@ -36,6 +37,5 @@ lazy val `sbt-version-policy` = project
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.eed3si9n.verify" %% "verify" % "0.2.0" % Test,
     ),
-    testFrameworks += new TestFramework("verify.runner.Framework"),
-    versionPolicyIgnored += "org.scala-lang.modules" %% "scala-collection-compat" // Removed from MiMa 0.9.1
+    testFrameworks += new TestFramework("verify.runner.Framework")
   )
