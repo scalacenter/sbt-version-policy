@@ -54,8 +54,7 @@ ThisBuild / version := "1.1.0"
 ~~~
 
 In case you use a plugin like [sbt-dynver], which automatically sets
-the `version` based on the Git status, you have nothing to do (the
-`version` set by sbt-dynver will just work with sbt-version-policy).
+the `version` based on the Git status, [read below](#how-to-integrate-with-sbt-dynver).
 
 ## Use
 
