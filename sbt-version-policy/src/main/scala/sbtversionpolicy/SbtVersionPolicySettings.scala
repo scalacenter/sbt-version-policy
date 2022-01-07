@@ -108,7 +108,7 @@ object SbtVersionPolicySettings {
   )
 
   def findIssuesSettings = Def.settings(
-    versionPolicyFindDependencyIssues := {
+    versionPolicyDependencyIssuesReporter := {
       val log = streams.value.log
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -117,9 +117,6 @@ object SbtVersionPolicySettings {
         sys.error("Compile configuration not found in update report")
       }
 
-      val compatibilityIntention =
-        versionPolicyIntention.?.value
-          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
       val depRes = versionPolicyDependencyResolution.value
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
@@ -140,32 +137,24 @@ object SbtVersionPolicySettings {
           log
         )
 
+      new DependencyCheck.Reporter(
+        excludedModules,
+        currentDependencies,
+        reconciliations,
+        VersionCompatibility.Strict,
+        sv,
+        sbv,
+        depRes,
+        scalaModuleInf,
+        updateConfig,
+        warningConfig,
+        log
+      )
+    },
+    versionPolicyFindDependencyIssues := {
+      val compatibilityIntention = requirePolicyIntentionOrThrow(versionPolicyIntention.?.value)
       val previousModuleIds = versionPolicyPreviousArtifacts.value
-
-      // Skip dependency check if no compatibility is intended
-      if (compatibilityIntention == Compatibility.None) Nil else {
-
-        previousModuleIds.map { previousModuleId =>
-
-          val report0 = DependencyCheck.report(
-            compatibilityIntention,
-            excludedModules,
-            currentDependencies,
-            previousModuleId,
-            reconciliations,
-            VersionCompatibility.Strict,
-            sv,
-            sbv,
-            depRes,
-            scalaModuleInf,
-            updateConfig,
-            warningConfig,
-            log
-          )
-
-          (previousModuleId, report0)
-        }
-      }
+      versionPolicyDependencyIssuesReporter.value.apply(compatibilityIntention, previousModuleIds)
     },
     versionPolicyReportDependencyIssues := {
       val log = streams.value.log
@@ -173,9 +162,7 @@ object SbtVersionPolicySettings {
       val sbv = scalaBinaryVersion.value
       val direction = versionPolicyCheckDirection.value
       val reports = versionPolicyFindDependencyIssues.value
-      val intention =
-        versionPolicyIntention.?.value
-          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
+      val intention = requirePolicyIntentionOrThrow(versionPolicyIntention.?.value)
       val currentModule = projectID.value
       val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
 
@@ -263,9 +250,7 @@ object SbtVersionPolicySettings {
     },
     versionPolicyMimaCheck := Def.taskDyn {
       import Compatibility._
-      val compatibility =
-        versionPolicyIntention.?.value
-          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
+      val compatibility = requirePolicyIntentionOrThrow(versionPolicyIntention.?.value)
       val log = streams.value.log
       val currentModule = projectID.value
       val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
@@ -301,6 +286,14 @@ object SbtVersionPolicySettings {
       }
     }.value
   )
+
+  private def requirePolicyIntentionOrThrow(maybeCompatibility: Option[Compatibility]) =
+    maybeCompatibility
+      .getOrElse(
+        throw new MessageOnlyException(
+          "Please set the key versionPolicyIntention to declare the compatibility you want to check"
+        )
+      )
 
   def skipSettings = Seq(
     versionCheck / skip := (publish / skip).value,

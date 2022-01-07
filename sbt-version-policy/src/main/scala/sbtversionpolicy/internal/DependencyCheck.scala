@@ -75,6 +75,47 @@ object DependencyCheck {
       log
     )
 
+  class Reporter(
+    excludedModules: Set[(String, String)],
+    currentDependencies: Map[(String, String), String],
+    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
+    defaultReconciliation: VersionCompatibility,
+    sv: String,
+    sbv: String,
+    depRes: DependencyResolution,
+    scalaModuleInf: Option[ScalaModuleInfo],
+    updateConfig: UpdateConfiguration,
+    warningConfig: UnresolvedWarningConfiguration,
+    log: Logger
+  ) {
+    def apply(compatibilityIntention: Compatibility, previousModuleIds: Seq[ModuleID]) =
+    // Skip dependency check if no compatibility is intended
+      if (compatibilityIntention == Compatibility.None) Nil else {
+
+        previousModuleIds.map { previousModuleId =>
+
+          val report0 = report(
+            compatibilityIntention,
+            excludedModules,
+            currentDependencies,
+            previousModuleId,
+            reconciliations,
+            defaultReconciliation,
+            sv,
+            sbv,
+            depRes,
+            scalaModuleInf,
+            updateConfig,
+            warningConfig,
+            log
+          )
+
+          (previousModuleId, report0)
+        }
+      }
+
+  }
+
   private[sbtversionpolicy] def report(
     compatibilityIntention: Compatibility,
     excludedModules: Set[(String, String)],

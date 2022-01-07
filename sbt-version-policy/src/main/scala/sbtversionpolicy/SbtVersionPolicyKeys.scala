@@ -3,6 +3,7 @@ package sbtversionpolicy
 import coursier.version.VersionCompatibility
 import sbt._
 import sbt.librarymanagement.DependencyBuilders.OrganizationArtifactName
+import sbtversionpolicy.internal.DependencyCheck
 
 import scala.util.matching.Regex
 
@@ -13,6 +14,7 @@ trait SbtVersionPolicyKeys {
   final val versionPolicyCheck                  = taskKey[Unit]("Runs both versionPolicyReportDependencyIssues and versionPolicyMimaCheck")
   final val versionPolicyMimaCheck              = taskKey[Unit]("Runs Mima to check backward or forward compatibility depending on the intended change defined via versionPolicyIntention.")
   final val versionPolicyForwardCompatibilityCheck = taskKey[Unit]("Report forward binary compatible issues from Mima.")
+  final val versionPolicyDependencyIssuesReporter = taskKey[DependencyCheck.Reporter]("Helper to find issues in the library dependencies.")
   final val versionPolicyFindDependencyIssues   = taskKey[Seq[(ModuleID, DependencyCheckReport)]]("Compatibility issues in the library dependencies.")
   final val versionCheck                        = taskKey[Unit]("Checks that the version is consistent with the intended compatibility level defined via versionPolicyIntention")
 
