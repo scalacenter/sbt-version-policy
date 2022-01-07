@@ -93,19 +93,22 @@ object SbtVersionPolicySettings {
 
   def previousArtifactsSettings = Def.settings(
     versionPolicyPreviousArtifactsFromMima := {
-      import Ordering.Implicits._
-      MimaPlugin.autoImport.mimaPreviousArtifacts.value
-        .toVector
-        .map { mod =>
-          val splitVersion = mod.revision.split('.').map(s => Try(s.toInt).getOrElse(-1)).toSeq
-          (splitVersion, mod)
-        }
-        .sortBy(_._1)
-        .map(_._2)
+      fromMimaArtifacts(MimaPlugin.autoImport.mimaPreviousArtifacts.value)
     },
-
     versionPolicyPreviousArtifacts := versionPolicyPreviousArtifactsFromMima.value
   )
+
+  def fromMimaArtifacts(artifacts: Set[sbt.ModuleID]) = {
+    import Ordering.Implicits.*
+    artifacts
+      .toVector
+      .map { mod =>
+        val splitVersion = mod.revision.split('.').map(s => Try(s.toInt).getOrElse(-1)).toSeq
+        (splitVersion, mod)
+      }
+      .sortBy(_._1)
+      .map(_._2)
+  }
 
   def findIssuesSettings = Def.settings(
     versionPolicyDependencyIssuesReporter := {
