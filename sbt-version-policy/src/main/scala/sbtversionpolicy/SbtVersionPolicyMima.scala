@@ -27,7 +27,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
   private def moduleName(m: ModuleID, sv: String, sbv: String): String =
     moduleName(m.crossVersion, sv, sbv, m.name)
 
-  private lazy val previousVersionsFromRepo = Def.setting {
+  lazy val previousVersionsFromRepo = Def.setting {
 
     val projId = Keys.projectID.value
     val sv = Keys.scalaVersion.value
