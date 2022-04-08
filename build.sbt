@@ -11,7 +11,7 @@ inThisBuild(List(
       url("https://github.com/alexarchambault")
     )
   ),
-  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+  versionPolicyIntention := Compatibility.BinaryCompatible,
   libraryDependencySchemes += "com.typesafe" %% "mima-core" % "semver-spec"
 ))
 
@@ -27,7 +27,7 @@ lazy val `sbt-version-policy` = project
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
-    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.0.1"),
+    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.0"),
     libraryDependencies ++= Seq(
       "io.github.alexarchambault" %% "data-class" % "0.2.5" % Provided,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
