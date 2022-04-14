@@ -81,7 +81,7 @@ object DependencyCheck {
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
     defaultReconciliation: VersionCompatibility,
     sv: String,
-    sbv: String,
+    scalaBinaryVersion: String,
     depRes: DependencyResolution,
     scalaModuleInf: Option[ScalaModuleInfo],
     updateConfig: UpdateConfiguration,
