@@ -1,0 +1,15 @@
+name: Submit Dependency Graph
+on:
+  push:
+    branches: main # default branch of the project
+jobs:
+  submit-graph:
+    name: Submit Dependency Graph
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: scalacenter/sbt-dependency-graph-action@v0.1.0-M2
