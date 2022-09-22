@@ -27,7 +27,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
   private def moduleName(m: ModuleID, sv: String, sbv: String): String =
     moduleName(m.crossVersion, sv, sbv, m.name)
 
-  private lazy val previousVersionsFromRepo = Def.setting {
+  lazy val previousVersionsFromRepo = Def.setting {
 
     val projId = Keys.projectID.value
     val sv = Keys.scalaVersion.value
@@ -103,18 +103,20 @@ object SbtVersionPolicyMima extends AutoPlugin {
     },
 
     mimaPreviousArtifacts := {
-      val projId = Keys.projectID.value.withExplicitArtifacts(Vector.empty)
-      val previousVersions0 = versionPolicyPreviousVersions.value
-
-      previousVersions0.toSet.map { version =>
-        projId
-          .withExtraAttributes {
-            projId.extraAttributes
-              .filter(!_._1.stripPrefix("e:").startsWith("info."))
-          }
-          .withRevision(version)
-      }
+      computePreviousArtifacts(Keys.projectID.value, versionPolicyPreviousVersions.value)
     }
   )
 
+  def computePreviousArtifacts(projectID: ModuleID, previousVersions: Seq[String]) = {
+    val projId = projectID.withExplicitArtifacts(Vector.empty)
+
+    previousVersions.toSet.map { version =>
+      projId
+        .withExtraAttributes {
+          projId.extraAttributes
+            .filter(!_._1.stripPrefix("e:").startsWith("info."))
+        }
+        .withRevision(version)
+    }
+  }
 }
