@@ -293,6 +293,26 @@ versionPolicyCheck / skip := true
 versionCheck / skip := true
 ~~~
 
+### Custom parsing of version numbers, `versionPolicyModuleVersionExtractor`
+
+You can specify custom logic for parsing version numbers on a per-dependency basis. This is useful when artifact providers use their own version naming scheme.
+
+For example, say you have this dependency
+
+~~~ scala
+libraryDependencies += "com.google.apis" % "google-api-services-iam" % "v1-rev20211104-1.32.1"
+~~~
+
+Google's version scheme is to include the target REST API version, `v1-rev20211104` with the Java API version, `1.32.1`.
+
+In order to tell sbt-version-policy how to parse this version number, you can bind `versionPolicyModuleVersionExtractor`:
+
+~~~ scala
+versionPolicyModuleVersionExtractor := {
+  case m if m.name.startsWith("google-api-services") => m.revision.split('-').last
+}
+~~~
+
 ## Acknowledgments
 
 <img src="https://scala.epfl.ch/resources/img/scala-center-swirl.png" width="40px" />

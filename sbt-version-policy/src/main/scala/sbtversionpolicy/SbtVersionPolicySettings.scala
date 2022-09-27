@@ -31,6 +31,7 @@ object SbtVersionPolicySettings {
     versionPolicyDependencyResolution := CoursierDependencyResolution(versionPolicyCsrConfiguration.value),
     versionPolicyUpdateConfiguration := updateConfiguration.value,
     versionPolicyUnresolvedWarningConfiguration := (update / unresolvedWarningConfiguration).value,
+    versionPolicyModuleVersionExtractor := PartialFunction.empty,
     versionPolicyScalaModuleInfo := scalaModuleInfo.value
   )
 
@@ -125,8 +126,9 @@ object SbtVersionPolicySettings {
       val updateConfig = versionPolicyUpdateConfiguration.value
       val warningConfig = versionPolicyUnresolvedWarningConfiguration.value
       val excludedModules = ignoredModulesOfCurrentBuild.value
+      val extractVersion = versionPolicyModuleVersionExtractor.value
 
-      val currentDependencies = DependencyCheck.modulesOf(compileReport, excludedModules, sv, sbv, log)
+      val currentDependencies = DependencyCheck.modulesOf(compileReport, excludedModules, sv, sbv, extractVersion, log)
 
       val reconciliations =
         DependencySchemes(
@@ -160,6 +162,7 @@ object SbtVersionPolicySettings {
             scalaModuleInf,
             updateConfig,
             warningConfig,
+            extractVersion,
             log
           )
 

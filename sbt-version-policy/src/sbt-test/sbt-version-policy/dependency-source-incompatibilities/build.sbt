@@ -90,6 +90,43 @@ lazy val i = project
     version := "2.1.0"
   )
 
+lazy val j = project
+  .settings(
+    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    name := "source-incompat-test",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-kernel" % "2.3.1",
+      "com.google.apis" % "google-api-services-container" % "v1-rev20220727-2.0.0"
+    ),
+    version := "2.1.0"
+  )
+
+lazy val k = project
+  .settings(
+    // bumping custom version scheme for google-api-services-container causes library issues
+    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    name := "source-incompat-test",
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-kernel" % "2.3.1",
+      "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
+    ),
+    version := "2.1.1"
+  )
+
+lazy val l = project
+  .settings(
+    versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+    name := "source-incompat-test",
+    versionPolicyModuleVersionExtractor := {
+      case m if m.name.startsWith("google-api-services") => m.revision.split('-').last
+    },
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-kernel" % "2.3.1",
+      "com.google.apis" % "google-api-services-container" % "v1-rev20220826-2.0.0"
+    ),
+    version := "2.1.1"
+  )
+
 inThisBuild(List(
   scalaVersion := "2.12.11",
   libraryDependencySchemes += "org.typelevel" %% "cats-kernel" % "semver-spec",
