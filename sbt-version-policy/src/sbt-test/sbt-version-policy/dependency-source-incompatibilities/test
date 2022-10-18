@@ -10,3 +10,7 @@
 > g/publishLocal
 -> h/versionPolicyReportDependencyIssues
 > i/versionPolicyReportDependencyIssues
+> j/versionPolicyReportDependencyIssues
+> j/publishLocal
+-> k/versionPolicyReportDependencyIssues
+> l/versionPolicyReportDependencyIssues

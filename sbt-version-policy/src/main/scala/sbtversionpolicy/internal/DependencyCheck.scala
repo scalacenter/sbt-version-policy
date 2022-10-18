@@ -16,13 +16,14 @@ object DependencyCheck {
     scalaBinaryVersion: String,
     log: Logger
   ): Map[(String, String), String] =
-    modulesOf(report, Set.empty, scalaVersion, scalaBinaryVersion, log)
+    modulesOf(report, Set.empty, scalaVersion, scalaBinaryVersion, PartialFunction.empty, log)
 
   private[sbtversionpolicy] def modulesOf(
     report: ConfigurationReport,
     excludedModules: Set[(String, String)],
     scalaVersion: String,
     scalaBinaryVersion: String,
+    moduleToVersion: PartialFunction[ModuleID, String],
     log: Logger
   ): Map[(String, String), String] =
     report
@@ -34,7 +35,7 @@ object DependencyCheck {
         val name = CrossVersion(mod.crossVersion, scalaVersion, scalaBinaryVersion)
           .fold(mod.name)(_(mod.name))
         // TODO Check mod.explicitArtifacts too?
-        (mod.organization, name) -> mod.revision
+        (mod.organization, name) -> moduleToVersion.applyOrElse(mod, (m: ModuleID) => m.revision)
       }
       .groupBy(_._1)
       .map {
@@ -72,6 +73,7 @@ object DependencyCheck {
       scalaModuleInf,
       updateConfig,
       warningConfig,
+      PartialFunction.empty,
       log
     )
 
@@ -88,6 +90,7 @@ object DependencyCheck {
     scalaModuleInf: Option[ScalaModuleInfo],
     updateConfig: UpdateConfiguration,
     warningConfig: UnresolvedWarningConfiguration,
+    moduleToVersion: PartialFunction[ModuleID, String],
     log: Logger
   ): DependencyCheckReport = {
 
@@ -107,12 +110,11 @@ object DependencyCheck {
     val previousCompileReport = previousReport.configuration(Compile).getOrElse {
       sys.error(s"Compile configuration not found in previous update report $previousReport")
     }
-    val previousDependencies = DependencyCheck.modulesOf(previousCompileReport, excludedModules, sv, sbv, log)
+    val previousDependencies = DependencyCheck.modulesOf(previousCompileReport, excludedModules, sv, sbv, moduleToVersion, log)
       .filterKeys {
         case (org, name) =>
           org != previousModuleId0.organization || name != previousModuleId0.name
       }
-      .toMap
 
     DependencyCheckReport(
       compatibilityIntention,
