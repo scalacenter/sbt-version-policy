@@ -31,7 +31,6 @@ object SbtVersionPolicySettings {
     versionPolicyDependencyResolution := CoursierDependencyResolution(versionPolicyCsrConfiguration.value),
     versionPolicyUpdateConfiguration := updateConfiguration.value,
     versionPolicyUnresolvedWarningConfiguration := (update / unresolvedWarningConfiguration).value,
-    versionPolicyModuleVersionExtractor := PartialFunction.empty,
     versionPolicyScalaModuleInfo := scalaModuleInfo.value
   )
 
@@ -51,7 +50,8 @@ object SbtVersionPolicySettings {
     versionPolicyDefaultDependencySchemes := defaultSchemes,
     versionPolicyIgnored := Seq.empty,
     versionPolicyDefaultScheme := None,
-    versionPolicyIgnoredInternalDependencyVersions := None
+    versionPolicyIgnoredInternalDependencyVersions := None,
+    versionPolicyModuleVersionExtractor := PartialFunction.empty
   )
 
   def reconciliationSettings = Def.settings(
