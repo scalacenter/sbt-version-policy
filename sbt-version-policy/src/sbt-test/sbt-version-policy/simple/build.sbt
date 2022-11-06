@@ -44,7 +44,11 @@ lazy val c = project
     csrConfiguration := {
       import lmcoursier.definitions._
       csrConfiguration.value.withReconciliation(Vector(
-        ModuleMatchers.only(Module(Organization("com.chuusai"), ModuleName("shapeless_2.12"), Map())) -> Reconciliation.Strict
+        ModuleMatchers(
+          exclude = Set.empty,
+          include = Set(Module(Organization("com.chuusai"), ModuleName("shapeless_2.12"), Map())),
+          includeByDefault = false
+        ) -> Reconciliation.Strict
       ))
     },
     checkFails,
