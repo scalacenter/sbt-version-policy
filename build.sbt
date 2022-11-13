@@ -33,7 +33,7 @@ lazy val `sbt-version-policy` = project
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
     ),
     libraryDependencies ++= Seq(
-      "io.get-coursier" % "interface" % "1.0.10",
+      "io.get-coursier" % "interface" % "1.0.11",
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
     ),
