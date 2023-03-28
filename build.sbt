@@ -34,7 +34,7 @@ lazy val `sbt-version-policy` = project
     ),
     libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "1.0.13",
-      "io.get-coursier" %% "versions" % "0.3.1",
+      "io.get-coursier" %% "versions" % "0.3.2",
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
     ),
     testFrameworks += new TestFramework("verify.runner.Framework")
