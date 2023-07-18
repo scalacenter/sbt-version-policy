@@ -218,16 +218,24 @@ object SbtVersionPolicySettings {
         versionPolicyIntention.?.value
           .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility guarantees of this release"))
       val versionValue = version.value
+      val versionNumber = VersionNumber(versionValue)
       val s = streams.value
       val moduleName = projectID.value.name
 
-      if (Compatibility.isValidVersion(intention, versionValue)) {
+      if (Compatibility.isValidVersion(intention, versionNumber)) {
         s.log.info(s"Module ${moduleName} has a valid version number: $versionValue (versionPolicyIntention is set to 'Compatibility.${intention}')")
       } else {
         val detail =
-          if (intention == Compatibility.None) "You must increment the major version number (or the minor version number, if major version is 0) to publish a binary incompatible release."
-          else "You must increment the minor version number to publish a source incompatible release."
-        throw new MessageOnlyException(s"Module ${moduleName} has an invalid version number: $versionValue. $detail")
+          if (intention == Compatibility.None) {
+            val matchingIntention =
+              if (versionNumber._3.contains(0)) Compatibility.BinaryCompatible else Compatibility.BinaryAndSourceCompatible
+            "If you want to publish a binary incompatible release, you must increment the major version number (or the minor version number, if the major version is 0). " +
+            s"Otherwise, to release version ${versionValue}, you need to restrict the versionPolicyIntention to ${matchingIntention} and run versionPolicyCheck again."
+          } else {
+            "If you want to publish a source incompatible release, you must increment the minor version number. " +
+            s"Otherwise, to release version ${versionValue}, you need to restrict the versionPolicyIntention to ${Compatibility.BinaryAndSourceCompatible} and run versionPolicyCheck again."
+          }
+        throw new MessageOnlyException(s"Module ${moduleName} has a declared version number ${versionValue} that does not conform to its declared versionPolicyIntention of ${intention}. $detail")
       }
     }).value,
     versionPolicyCheck := Def.ifS((versionPolicyCheck / skip).toTask)(Def.task {
