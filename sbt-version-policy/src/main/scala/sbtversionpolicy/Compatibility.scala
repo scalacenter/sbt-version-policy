@@ -64,8 +64,14 @@ object Compatibility {
    * Validates that the given new `version` matches the claimed `compatibility` level.
    * @return Some validation error, or None if the version is valid.
    */
-  def isValidVersion(compatibility: Compatibility, version: String): Boolean = {
-    val versionNumber = VersionNumber(version)
+  def isValidVersion(compatibility: Compatibility, version: String): Boolean =
+    isValidVersion(compatibility, VersionNumber(version))
+
+  /**
+   * Validates that the given new `version` matches the claimed `compatibility` level.
+   * @return Some validation error, or None if the version is valid.
+   */
+  private[sbtversionpolicy] def isValidVersion(compatibility: Compatibility, versionNumber: VersionNumber): Boolean = {
     val major = versionNumber._1
     val minor = versionNumber._2
     val patch = versionNumber._3
