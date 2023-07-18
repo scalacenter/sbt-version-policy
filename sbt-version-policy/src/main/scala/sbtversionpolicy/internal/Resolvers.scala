@@ -123,7 +123,8 @@ object Resolvers {
 
   private def patternMatchGuard(patterns: Patterns): Boolean =
     patterns.ivyPatterns.lengthCompare(1) == 0 &&
-      patterns.artifactPatterns.lengthCompare(1) == 0
+      patterns.artifactPatterns.lengthCompare(1) == 0 &&
+      patterns.isMavenCompatible
 
   private def parseMavenCompatResolver(
     ivyProperties: Map[String, String],
