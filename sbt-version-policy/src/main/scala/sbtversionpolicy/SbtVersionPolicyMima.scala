@@ -90,7 +90,6 @@ object SbtVersionPolicyMima extends AutoPlugin {
       }
     },
     versionPolicyPreviousVersions := {
-      val ver = Keys.version.value
       val firstOpt = versionPolicyFirstVersion.value
       previousVersionOpt.value match {
         case Some(v) =>
