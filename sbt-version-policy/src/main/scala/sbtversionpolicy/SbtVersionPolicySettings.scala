@@ -323,26 +323,28 @@ object SbtVersionPolicySettings {
     val allProjectRefs = loadedBuild.value.allProjectRefs
     versionPolicyIgnoredInternalDependencyVersions.value match {
       case Some(versionRegex) =>
-        allProjectRefs.foldLeft(Def.setting(Set.empty[(String, String)])) { case (previousModules, (projectRef, _)) =>
-          Def.settingDyn {
-            val projectOrganization       = (projectRef / organization).value
-            val projectName               = (projectRef / moduleName).value
-            val projectVersion            = (projectRef / version).value
-            val projectCrossVersion       = (projectRef / crossVersion).value
-            val projectScalaVersion       = (projectRef / scalaVersion).value
-            val projectScalaBinaryVersion = (projectRef / scalaBinaryVersion).value
-            if (versionRegex.findFirstMatchIn(projectVersion).isDefined) {
-              val nameWithBinarySuffix =
-                CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
-                  .fold(projectName)(_(projectName))
-              val module = projectOrganization -> nameWithBinarySuffix
-              Def.setting(previousModules.value + module)
-            } else {
-              // Don’t include the module if its version does not match the regex
-              Def.setting(previousModules.value)
+        Def.uniform {
+          allProjectRefs.map { case (projectRef, _) =>
+            Def.setting {
+              val projectOrganization = (projectRef / organization).value
+              val projectName = (projectRef / moduleName).value
+              val projectVersion = (projectRef / version).value
+              val projectCrossVersion = (projectRef / crossVersion).value
+              val projectScalaVersion = (projectRef / scalaVersion).value
+              val projectScalaBinaryVersion = (projectRef / scalaBinaryVersion).value
+              if (versionRegex.findFirstMatchIn(projectVersion).isDefined) {
+                val nameWithBinarySuffix =
+                  CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
+                    .fold(projectName)(_ (projectName))
+                val module = projectOrganization -> nameWithBinarySuffix
+                Some(module)
+              } else {
+                // Don’t include the module if its version does not match the regex
+                None
+              }
             }
           }
-        }
+        }(_.flatten.toSet)
       case None =>
         // versionPolicyIgnoredInternalDependencyVersions is unset
         Def.setting(Set.empty)
