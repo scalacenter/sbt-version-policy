@@ -167,10 +167,12 @@ object DependencyCheckReport {
 
   private def extractSemVerNumbers(versionString: String): Option[(Int, Int, Int)] = {
     val version = Version(versionString)
-    if (version.items.size == 3 && version.items.forall(_.isInstanceOf[Version.Number])) {
-      val Seq(major, minor, patch) = version.items.collect { case num: Version.Number => num.value }
-      Some((major, minor, patch))
-    } else None // Not a normalized version number (e.g., 1.0.0-RC1)
+    version.items match {
+      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, _*) =>
+        Some((major.value, minor.value, patch.value))
+      case _ => 
+        None // Not a semantic version number (e.g., 1.0-RC1)
+    }
   }
 
 }

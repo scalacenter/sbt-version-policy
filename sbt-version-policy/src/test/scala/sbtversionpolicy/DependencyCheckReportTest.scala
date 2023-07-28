@@ -32,8 +32,11 @@ object DependencyCheckReportTest extends BasicTestSuite {
       isCompatible("1.0.1",     "1.0.0")
       isBreaking  ("1.1.0",     "1.0.0")
       isBreaking  ("2.0.0",     "1.0.0")
-      isBreaking  ("1.0.0",     "1.0.0-RC1")
+      isBreaking  ("1.1.0",     "1.0.0-RC1")
+      isBreaking  ("2.0.0",     "1.0.0-RC1")
       isCompatible("1.0.0-RC1", "1.0.0-RC1")
+      isCompatible("1.0.0",     "1.0.0-RC1")
+      isCompatible("1.0.1",     "1.0.0-RC1")
     }
   }
 
