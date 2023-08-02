@@ -153,23 +153,23 @@ object DependencyCheckReport {
         previousVersion == currentVersion
       case VersionCompatibility.SemVer | VersionCompatibility.EarlySemVer | VersionCompatibility.SemVerSpec =>
         // Early SemVer and SemVer Spec are equivalent regarding source compatibility
-        extractSemVerNumbers(currentVersion).zip(extractSemVerNumbers(previousVersion)).headOption match {
-          case Some(((currentMajor, currentMinor, currentPatch), (previousMajor, previousMinor, previousPatch))) =>
+        (extractSemVerNumbers(currentVersion, ignoreSuffix = true), extractSemVerNumbers(previousVersion, ignoreSuffix = false)) match {
+          case (Some((currentMajor, currentMinor, currentPatch)), Some((previousMajor, previousMinor, previousPatch))) =>
             currentMajor == previousMajor && {
               if (currentMajor == 0)
                 currentMinor == previousMinor && currentPatch == previousPatch
               else
                 currentMinor == previousMinor && currentPatch >= previousPatch
             }
-          case None => currentVersion == previousVersion
+          case _ => currentVersion == previousVersion
         }
     }
 
-  private def extractSemVerNumbers(versionString: String): Option[(Int, Int, Int)] = {
+  private def extractSemVerNumbers(versionString: String, ignoreSuffix: Boolean): Option[(Int, Int, Int)] = {
     val version = Version(versionString)
     version.items match {
-      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, _*) =>
-        Some((major.value, minor.value, patch.value))
+      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, suffix @ _*) =>
+        Some((major.value, minor.value, patch.value)).filter(_ => ignoreSuffix || suffix.isEmpty)
       case _ => 
         None // Not a semantic version number (e.g., 1.0-RC1)
     }
