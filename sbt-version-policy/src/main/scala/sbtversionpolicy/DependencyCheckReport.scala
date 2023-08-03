@@ -61,6 +61,8 @@ object DependencyCheckReport {
     def message = "missing dependency"
   }
 
+  private case class SemVerVersion(major: Int, minor: Int, patch: Int, suffix: Seq[Version.Item])
+
   @deprecated("This method is internal.", "1.1.0")
   def apply(
     currentModules: Map[(String, String), String],
@@ -153,24 +155,38 @@ object DependencyCheckReport {
         previousVersion == currentVersion
       case VersionCompatibility.SemVer | VersionCompatibility.EarlySemVer | VersionCompatibility.SemVerSpec =>
         // Early SemVer and SemVer Spec are equivalent regarding source compatibility
-        extractSemVerNumbers(currentVersion).zip(extractSemVerNumbers(previousVersion)).headOption match {
-          case Some(((currentMajor, currentMinor, currentPatch), (previousMajor, previousMinor, previousPatch))) =>
-            currentMajor == previousMajor && {
-              if (currentMajor == 0)
-                currentMinor == previousMinor && currentPatch == previousPatch
-              else
-                currentMinor == previousMinor && currentPatch >= previousPatch
+        (extractSemVerNumbers(currentVersion), extractSemVerNumbers(previousVersion)) match {
+          case (Some(currentSemVer), Some(previousSemVer)) =>
+            def sameMajor  = currentSemVer.major == previousSemVer.major
+            def sameMinor  = currentSemVer.minor == previousSemVer.minor
+            def samePatch  = currentSemVer.patch == previousSemVer.patch
+            def sameSuffix = currentSemVer.suffix == previousSemVer.suffix
+
+            if (currentSemVer.major == 0) {
+              // Before 1.x.y release even patch changes could be source incompatible,
+              // this includes changes between snapshots and release candidates              
+
+              sameMajor && sameMinor && samePatch && sameSuffix
+            } else {
+              // 1.0.0-RC1 may be source incompatible to 1.0.0-RC2
+              // but!
+              // 1.0.1-RC2 must be source compatible both to 1.0.1-RC1 and 1.0.0 (w/o suffix!)
+              def compatPatch = (samePatch && sameSuffix) || (previousSemVer.suffix.isEmpty || previousSemVer.patch > 0)
+                
+              sameMajor && sameMinor && compatPatch
             }
-          case None => currentVersion == previousVersion
+          case _ => false
         }
     }
 
-  private def extractSemVerNumbers(versionString: String): Option[(Int, Int, Int)] = {
+  private def extractSemVerNumbers(versionString: String): Option[SemVerVersion] = {
     val version = Version(versionString)
-    if (version.items.size == 3 && version.items.forall(_.isInstanceOf[Version.Number])) {
-      val Seq(major, minor, patch) = version.items.collect { case num: Version.Number => num.value }
-      Some((major, minor, patch))
-    } else None // Not a normalized version number (e.g., 1.0.0-RC1)
+    version.items match {
+      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, suffix @ _*) =>
+        Some(SemVerVersion(major.value, minor.value, patch.value, suffix))
+      case _ => 
+        None // Not a semantic version number (e.g., 1.0-RC1)
+    }
   }
 
 }

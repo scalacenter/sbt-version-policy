@@ -1,3 +1,4 @@
+import com.typesafe.tools.mima.core._
 
 inThisBuild(List(
   organization := "ch.epfl.scala",
@@ -37,5 +38,9 @@ lazy val `sbt-version-policy` = project
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
     ),
-    testFrameworks += new TestFramework("verify.runner.Framework")
+    testFrameworks += new TestFramework("verify.runner.Framework"),
+    mimaBinaryIssueFilters ++= Seq(
+      // this class is `private` and it's only used from `extractSemVerNumbers` method, which is private
+      ProblemFilters.exclude[MissingClassProblem]("sbtversionpolicy.DependencyCheckReport$SemVerVersion*")
+    ),
   )
