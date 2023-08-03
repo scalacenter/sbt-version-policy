@@ -61,7 +61,7 @@ object DependencyCheckReport {
     def message = "missing dependency"
   }
 
-  @data class SemVerVersion(major: Int, minor: Int, patch: Int, suffix: Seq[Version.Item])
+  private case class SemVerVersion(major: Int, minor: Int, patch: Int, suffix: Seq[Version.Item])
 
   @deprecated("This method is internal.", "1.1.0")
   def apply(
@@ -163,16 +163,17 @@ object DependencyCheckReport {
             def sameSuffix = currentSemVer.suffix == previousSemVer.suffix
 
             if (currentSemVer.major == 0) {
+              // Before 1.x.y release even patch changes could be source incompatible,
+              // this includes changes between snapshots and release candidates              
+
               sameMajor && sameMinor && samePatch && sameSuffix
             } else {
               // 1.0.0-RC1 may be source incompatible to 1.0.0-RC2
               // but!
               // 1.0.1-RC2 must be source compatible both to 1.0.1-RC1 and 1.0.0 (w/o suffix!)
-              def compatPatch = 
-                (currentSemVer.patch > 0 && samePatch) || 
-                (currentSemVer.patch > previousSemVer.patch && previousSemVer.suffix.isEmpty)
-
-              sameMajor && sameMinor && ((samePatch && sameSuffix) || compatPatch)
+              def compatPatch = (samePatch && sameSuffix) || (previousSemVer.suffix.isEmpty || previousSemVer.patch > 0)
+                
+              sameMajor && sameMinor && compatPatch
             }
           case _ => false
         }
