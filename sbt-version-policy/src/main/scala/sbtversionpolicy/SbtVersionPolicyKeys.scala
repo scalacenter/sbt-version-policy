@@ -7,7 +7,10 @@ import sbt.librarymanagement.DependencyBuilders.OrganizationArtifactName
 import scala.util.matching.Regex
 
 trait SbtVersionPolicyKeys {
-  final val versionPolicyIntention              = settingKey[Compatibility]("Compatibility intentions for the next release.")
+  final val versionPolicyIntention = settingKey[Compatibility]("Compatibility intentions for the next release.")
+  final val versionAssessMimaCompatibility = taskKey[Compatibility]("The compatability level of the code, based on the current state of the project.")
+  final val versionAssessDependencyCompatibility = taskKey[Compatibility]("The compatability level of the dependencies.")
+  final val versionAssessOverallCompatibility = taskKey[Compatibility]("The overall compatability level of the code & dependencies.")
   final val versionPolicyPreviousArtifacts      = taskKey[Seq[ModuleID]]("")
   final val versionPolicyReportDependencyIssues = taskKey[Unit]("Check for removed or updated dependencies in an incompatible way.")
   final val versionPolicyCheck                  = taskKey[Unit]("Runs both versionPolicyReportDependencyIssues and versionPolicyMimaCheck")

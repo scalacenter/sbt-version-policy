@@ -2,13 +2,14 @@ package sbtversionpolicy
 
 import com.typesafe.tools.mima.plugin.{MimaPlugin, SbtMima}
 import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
-import sbt._
-import sbt.Keys._
+import sbt.{Def, *}
+import sbt.Keys.*
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import sbtversionpolicy.internal.{DependencyCheck, DependencySchemes, MimaIssues}
-import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
+import sbtversionpolicy.SbtVersionPolicyMima.autoImport.*
 
+import scala.math.Ordering.Implicits._
 import scala.util.Try
 
 object SbtVersionPolicySettings {
@@ -272,46 +273,43 @@ object SbtVersionPolicySettings {
       }
       else Compatibility.None
     },
+    versionAssessMimaCompatibility := {
+      lastPopulatedValueOf(Compatibility.Levels.toList.flatMap { level =>
+        level.checkThatMustPassForCompatabilityLevel.map(_.result.map(_.toEither.toOption.map(_ => level)))
+      }).map(_.getOrElse(Compatibility.None)).value
+    },
     versionPolicyMimaCheck := Def.taskDyn {
-      import Compatibility._
-      val compatibility =
+      val intendedCompatibility =
         versionPolicyIntention.?.value
           .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
       val log = streams.value.log
-      val currentModule = projectID.value
+      val currentModule = nameAndRevision(projectID.value)
       val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
+      val actualCompat = versionAssessMimaCompatibility.value
 
-      val reportBackwardBinaryCompatibilityIssues: Def.Initialize[Task[Unit]] =
-        MimaPlugin.autoImport.mimaReportBinaryIssues.result.map(_.toEither.left.foreach { error =>
-          log.error(s"Module ${nameAndRevision(currentModule)} is not binary compatible with ${formattedPreviousVersions}. You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
-          throw new MessageOnlyException(error.directCause.map(_.toString).getOrElse("mimaReportBinaryIssues failed"))
+      println(s"actualCompat=$actualCompat")
+
+      Def.task {
+        log.info(if (intendedCompatibility == Compatibility.None) {
+          s"Not checking compatibility of module $currentModule because versionPolicyIntention is set to 'Compatibility.None'"
+        } else {
+          s"Module $currentModule is ${actualCompat.shortDescription} compatible with $formattedPreviousVersions"
         })
-
-      val reportForwardBinaryCompatibilityIssues: Def.Initialize[Task[Unit]] =
-        versionPolicyForwardCompatibilityCheck.result.map(_.toEither.left.foreach { error =>
-          log.error(s"Module ${nameAndRevision(currentModule)} is not source compatible with ${formattedPreviousVersions}. You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
-          throw new MessageOnlyException(error.directCause.map(_.toString).getOrElse("versionPolicyForwardCompatibilityCheck failed"))
-        })
-
-      compatibility match {
-        case BinaryCompatible =>
-          reportBackwardBinaryCompatibilityIssues.map { _ =>
-            log.info(s"Module ${nameAndRevision(currentModule)} is binary compatible with ${formattedPreviousVersions}")
-          }
-        case BinaryAndSourceCompatible =>
-          Def.task {
-            val ignored1 = reportForwardBinaryCompatibilityIssues.value
-            val ignored2 = reportBackwardBinaryCompatibilityIssues.value
-          }.map { _ =>
-            log.info(s"Module ${nameAndRevision(currentModule)} is binary and source compatible with ${formattedPreviousVersions}")
-          }
-        case None => Def.task {
-          // skip mima if no compatibility is intented
-          log.info(s"Not checking compatibility of module ${nameAndRevision(currentModule)} because versionPolicyIntention is set to 'Compatibility.None'")
-        }
       }
     }.value
   )
+
+  private def lastPopulatedValueOf[B](tasks: List[Def.Initialize[Task[Option[B]]]]): Def.Initialize[Task[Option[B]]] = {
+    tasks match {
+      case Nil => Def.task(None)
+      case x :: xs =>
+        Def.task {
+          val tv = x.value
+          if (tv.isDefined) lastPopulatedValueOf(xs).value.orElse(tv)
+          else None
+        }
+    }
+  }
 
   def skipSettings = Seq(
     versionCheck / skip := (publish / skip).value,

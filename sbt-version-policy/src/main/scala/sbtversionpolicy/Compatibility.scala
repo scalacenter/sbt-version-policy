@@ -1,25 +1,46 @@
 package sbtversionpolicy
 
-import coursier.version.{ Version, VersionCompatibility }
-import sbt.VersionNumber
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import coursier.version.{Version, VersionCompatibility}
+import sbt.{TaskKey, VersionNumber}
+import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport
 
 /** Compatibility level between two version values.
  */
-sealed trait Compatibility
+sealed trait Compatibility {
+  val checkThatMustPassForCompatabilityLevel: Option[TaskKey[_]]
+  val shortDescription: String
+}
 
 object Compatibility {
 
   /** There is NO source compatibility or binary compatibility.
    */
-  case object None extends Compatibility
+  case object None extends Compatibility {
+    override val checkThatMustPassForCompatabilityLevel: Option[TaskKey[_]] = scala.None
+    override val shortDescription: String = "not"
+  }
 
   /** Binary compatibility only.
    */
-  case object BinaryCompatible extends Compatibility
+  case object BinaryCompatible extends Compatibility {
+    override val checkThatMustPassForCompatabilityLevel: Option[TaskKey[_]] =
+      Some(MimaPlugin.autoImport.mimaReportBinaryIssues)
+    override val shortDescription: String = "binary"
+  }
 
   /** Binary and source compatibility.
    */
-  case object BinaryAndSourceCompatible extends Compatibility
+  case object BinaryAndSourceCompatible extends Compatibility {
+    override val checkThatMustPassForCompatabilityLevel: Option[TaskKey[_]] =
+      Some(autoImport.versionPolicyForwardCompatibilityCheck)
+    override val shortDescription: String = "binary and source"
+  }
+
+  // Ordered from least to MOST exacting
+  val Levels: Seq[Compatibility] = Seq(None, BinaryCompatible, BinaryAndSourceCompatible)
+
+  implicit val compatibilityOrdering: Ordering[Compatibility] = Ordering.by[Compatibility, Int](Levels.indexOf(_))
 
   def apply(value1: String, value2: String, scheme: VersionCompatibility): Compatibility = {
     def get(idx: Int, items: Vector[Version.Item]) =
