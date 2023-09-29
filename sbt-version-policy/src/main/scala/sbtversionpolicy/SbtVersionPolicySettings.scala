@@ -274,6 +274,20 @@ object SbtVersionPolicySettings {
       else Compatibility.None
     },
     versionAssessMimaCompatibility := {
+      /*
+      When being used for an Intention check, we want:
+      - the compatibility level attained
+      - the exception we got trying to attain that compatability level, if any (which would be from the level *above* the attained level...)
+
+      We want to say "project failed the binary compatability check with exception waawaah"
+
+      log.error(s"Module ${nameAndRevision(currentModule)} is not {intended} compatible with ${formattedPreviousVersions}. You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
+      throw new MessageOnlyException(error.directCause.map(_.toString).getOrElse("versionPolicyForwardCompatibilityCheck failed"))
+
+      result.attainsCompatability = BinaryCompatible
+      result.failedToAttain = Some((SourceAndBinaryCompatible, exception))
+
+       */
       lastPopulatedValueOf(Compatibility.Levels.toList.flatMap { level =>
         level.checkThatMustPassForCompatabilityLevel.map(_.result.map(_.toEither.toOption.map(_ => level)))
       }).map(_.getOrElse(Compatibility.None)).value
@@ -286,6 +300,8 @@ object SbtVersionPolicySettings {
       val currentModule = nameAndRevision(projectID.value)
       val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
       val actualCompat = versionAssessMimaCompatibility.value
+      val actualCompat2 = versionAssessMimaCompatibility.value
+      val actualCompat3 = versionAssessMimaCompatibility.value
 
       println(s"actualCompat=$actualCompat")
 
