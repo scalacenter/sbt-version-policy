@@ -7,3 +7,6 @@ target/
 .metals
 .vscode
 metals.sbt
+
+# simplest portable 'sed -i' syntax creates backup files, eg 'sed -i.bak' - see https://unix.stackexchange.com/a/92907/46453
+*.bak
