@@ -5,7 +5,7 @@ $ exec git config user.name "name"
 
 # Before first release, set `versionPolicyIntention` to `Compatibility.None` because
 # there is no previous release to compare to.
-$ exec sed -i 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.None/' build.sbt
+$ exec sed -i.bak 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.None/' build.sbt
 
 $ exec git add .
 $ exec git commit -m "Initial commit"
@@ -18,7 +18,7 @@ $ exec git tag v1.0.0
 > ci-release
 
 # Reset compatibility intention after release
-$ exec sed -i 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.BinaryAndSourceCompatible/' build.sbt
+$ exec sed -i.bak 's/versionPolicyIntention := .*/versionPolicyIntention := Compatibility.BinaryAndSourceCompatible/' build.sbt
 
 # New contributions
 $ exec git commit -a -m "Some hard work"
