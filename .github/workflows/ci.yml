@@ -16,10 +16,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - uses: coursier/cache-action@v5
-    - uses: olafurpg/setup-scala@v10
+    - uses: actions/setup-java@v3
       with:
-        java-version: adopt@1.11
+        java-version: 11
+        distribution: adopt
+        cache: 'sbt'
     - name: Run tests
       run: sbt scripted versionPolicyCheck
 
@@ -34,11 +35,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: coursier/cache-action@v5
-
-      - uses: olafurpg/setup-scala@v10
+      - uses: actions/setup-java@v3
         with:
-          java-version: adopt@1.11
+          java-version: 11
+          distribution: adopt
+          cache: 'sbt'
 
       - uses: olafurpg/setup-gpg@v3
 
