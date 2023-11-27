@@ -28,8 +28,12 @@ Global / onLoad := {
   val configureCiRelease = { (s: State) =>
     val env = System.getenv()
     val field = env.getClass.getDeclaredField("m")
-    field.setAccessible(true)
-    val writeableEnv = field.get(env).asInstanceOf[java.util.Map[String, String]]
+    val unsafe = {
+      val f = classOf[sun.misc.Unsafe].getDeclaredField("theUnsafe")
+      f.setAccessible(true)
+      f.get(null).asInstanceOf[sun.misc.Unsafe]
+    }
+    val writeableEnv = unsafe.getObject(env, unsafe.objectFieldOffset(field)).asInstanceOf[java.util.Map[String, String]]
     writeableEnv.put("CI_RELEASE", "+publishLocal") // Publish locally for our tests only, in practice you will publish to Sonatype
     writeableEnv.put("CI_SONATYPE_RELEASE", "")
     writeableEnv.put("PGP_PASSPHRASE", "")
