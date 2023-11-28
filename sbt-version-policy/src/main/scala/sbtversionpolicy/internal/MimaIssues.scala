@@ -8,10 +8,6 @@ import sbt.{Def, Task}
 
 private[sbtversionpolicy] object MimaIssues {
 
-  sealed trait ProblemType
-  case object BinaryIncompatibility extends ProblemType
-  case object SourceIncompatibility extends ProblemType
-
   val binaryIssuesIterator: Def.Initialize[Task[Iterator[(sbt.ModuleID, (List[Problem], List[Problem]))]]] = Def.task {
     val binaryIssueFilters = mimaBackwardIssueFilters.value
     val sourceIssueFilters = mimaForwardIssueFilters.value

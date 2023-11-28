@@ -245,7 +245,10 @@ In this mode, you can use sbt-version-policy to assess the incompatibilities int
 2. define `releaseVersion` from the compatibility level returned by `versionPolicyAssessCompatibility`
    ~~~ scala
    releaseVersion := {
-     val maybeBump = versionPolicyAssessCompatibility.value match {
+     val compatibilityWithPreviousReleases = versionPolicyAssessCompatibility.value
+     val compatibilityWithLastRelease = compatibilityWithPreviousReleases.head
+     val (_, compatibility) = compatibilityWithLastRelease
+     val maybeBump = compatibility match {
         case Compatibility.None                      => Some(Version.Bump.Major)
         case Compatibility.BinaryCompatible          => Some(Version.Bump.Minor)
         case Compatibility.BinaryAndSourceCompatible => None // No need to bump the patch version, because it has already been bumped when sbt-release set the next release version

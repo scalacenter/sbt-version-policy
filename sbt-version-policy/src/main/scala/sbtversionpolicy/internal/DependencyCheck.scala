@@ -5,18 +5,9 @@ import sbt.Compile
 import sbt.librarymanagement.{ConfigurationReport, CrossVersion, ModuleID}
 import sbt.util.Logger
 import sbt.librarymanagement.{DependencyResolution, ScalaModuleInfo, UnresolvedWarningConfiguration, UpdateConfiguration}
-import sbtversionpolicy.{Compatibility, DependencyCheckReport}
+import sbtversionpolicy.DependencyCheckReport
 
 object DependencyCheck {
-
-  @deprecated("This method is internal to sbt-version-policy", "1.2.0")
-  def modulesOf(
-    report: ConfigurationReport,
-    scalaVersion: String,
-    scalaBinaryVersion: String,
-    log: Logger
-  ): Map[(String, String), String] =
-    modulesOf(report, Set.empty, scalaVersion, scalaBinaryVersion, PartialFunction.empty, log)
 
   private[sbtversionpolicy] def modulesOf(
     report: ConfigurationReport,
@@ -46,39 +37,7 @@ object DependencyCheck {
           (orgName, versions.head)
       }
 
-  @deprecated("This method is internal to sbt-version-policy", "1.1.0")
-  def report(
-    currentModules: Map[(String, String), String],
-    previousModuleId: ModuleID,
-    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
-    defaultReconciliation: VersionCompatibility,
-    sv: String,
-    sbv: String,
-    depRes: DependencyResolution,
-    scalaModuleInf: Option[ScalaModuleInfo],
-    updateConfig: UpdateConfiguration,
-    warningConfig: UnresolvedWarningConfiguration,
-    log: Logger
-  ): DependencyCheckReport =
-    report(
-      Compatibility.BinaryCompatible,
-      Set.empty,
-      currentModules,
-      previousModuleId,
-      reconciliations,
-      defaultReconciliation,
-      sv,
-      sbv,
-      depRes,
-      scalaModuleInf,
-      updateConfig,
-      warningConfig,
-      PartialFunction.empty,
-      log
-    )
-
   private[sbtversionpolicy] def report(
-    compatibilityIntention: Compatibility,
     excludedModules: Set[(String, String)],
     currentDependencies: Map[(String, String), String],
     previousModuleId: ModuleID,
@@ -117,7 +76,6 @@ object DependencyCheck {
       }
 
     DependencyCheckReport(
-      compatibilityIntention,
       currentDependencies,
       previousDependencies,
       reconciliations,
