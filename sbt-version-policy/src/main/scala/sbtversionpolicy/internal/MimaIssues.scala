@@ -1,44 +1,29 @@
 package sbtversionpolicy.internal
 
-import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
-import sbt.Def
-import sbt.Keys._
-import com.typesafe.tools.mima.plugin.SbtMima
+import com.typesafe.tools.mima.MimaInternals
+import com.typesafe.tools.mima.core.Problem
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
+import com.typesafe.tools.mima.plugin.MimaPlugin.binaryIssuesFinder
+import sbt.{Def, Task}
 
-object MimaIssues {
+private[sbtversionpolicy] object MimaIssues {
 
-  import com.typesafe.tools.mima.core.util.log.Logging
-  import sbt.Logger
+  sealed trait ProblemType
+  case object BinaryIncompatibility extends ProblemType
+  case object SourceIncompatibility extends ProblemType
 
-  // adapted from https://github.com/lightbend/mima/blob/fde02955c4908a6423b12edf044799a868b51706/sbtplugin/src/main/scala/com/typesafe/tools/mima/plugin/MimaPlugin.scala#L82-L99
-  def forwardBinaryIssuesIterator = Def.task {
-    val log = streams.value.log
+  val binaryIssuesIterator: Def.Initialize[Task[Iterator[(sbt.ModuleID, (List[Problem], List[Problem]))]]] = Def.task {
+    val binaryIssueFilters = mimaBackwardIssueFilters.value
+    val sourceIssueFilters = mimaForwardIssueFilters.value
+    val issueFilters       = mimaBinaryIssueFilters.value
     val previousClassfiles = mimaPreviousClassfiles.value
-    val currentClassfiles = mimaCurrentClassfiles.value
-    val excludeAnnotations = mimaExcludeAnnotations.value
-    val cp = (mimaFindBinaryIssues / fullClasspath).value
-    val scalaVersionValue = scalaVersion.value
 
-    if (previousClassfiles.isEmpty)
-      log.info(s"${name.value}: mimaPreviousArtifacts is empty, not analyzing binary compatibility.")
-
-    previousClassfiles
-      .iterator
-      .map {
-        case (moduleId, prevClassfiles) =>
-          moduleId -> SbtMima.runMima(
-            prevClassfiles,
-            currentClassfiles,
-            cp,
-            "forward",
-            scalaVersionValue,
-            log,
-            excludeAnnotations.toList
-          )
-      }
-      .filter {
-        case (_, (problems, problems0)) =>
-          problems.nonEmpty || problems0.nonEmpty
+    binaryIssuesFinder.value.runMima(previousClassfiles, "both")
+      .map { case (previousModule, (binaryIssues, sourceIssues)) =>
+        val moduleRevision = previousModule.revision
+        val filteredBinaryIssues = binaryIssues.filter(MimaInternals.isProblemReported(moduleRevision, issueFilters, binaryIssueFilters))
+        val filteredSourceIssues = sourceIssues.filter(MimaInternals.isProblemReported(moduleRevision, issueFilters, sourceIssueFilters))
+        previousModule -> (filteredBinaryIssues, filteredSourceIssues)
       }
   }
 

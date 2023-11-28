@@ -4,7 +4,8 @@ sbt-version-policy helps library maintainers to follow the [recommended versioni
 This plugin:
 
 - configures [MiMa] to check for binary or source incompatibilities,
-- ensures that none of your dependencies are bumped or removed in an incompatible way.
+- ensures that none of your dependencies are bumped or removed in an incompatible way,
+- reports incompatibilities with previous releases.
 
 ## Install
 
@@ -21,100 +22,135 @@ The latest version is ![Scaladex](https://index.scala-lang.org/scalacenter/sbt-v
 sbt-version-policy depends on [MiMa], so that you don't need to explicitly
 depend on it.
 
-## Configure
+## Use
 
-The plugin introduces a new key, `versionPolicyIntention`, that you need
-to set to the level of compatibility that your next release is intended
-to provide. It can take the following three values:
+The plugin supports multiple types of workflow. It can validate that pull requests don’t break the binary compatibility or source compatibility, it can assess the compatibility level of a project compared to a previous release, and it can be used in combination with release plugins such as `sbt-ci-release` or `sbt-release`.
+
+### How to check that a project does not violate the desired compatibility level?
+
+The main use case in `sbt-version-policy` is to check that incoming pull requests don’t break the intended level of compatibility. For instance, a contribution targeting a branch that accepts only bug fixes should not introduce binary incompatibilities nor source incompatibilities.
+
+To achieve this, you need to set the intended level of compatibility of the project with the setting `versionPolicyIntention`, to set the next release version with the setting `version`, and to run the task `versionPolicyCheck` in your continuous integration system.
+
+#### 1. Set `versionPolicyIntention`
+
+The setting `versionPolicyIntention` can take the following three values:
 
 - ~~~ scala
   // Your next release will provide no compatibility guarantees with the
-  // previous one.
+  // previous one (ie, it will be a major release).
   ThisBuild / versionPolicyIntention := Compatibility.None
   ~~~
 - ~~~ scala
   // Your next release will be binary compatible with the previous one,
-  // but it may not be source compatible.
+  // but it may not be source compatible (ie, it will be a minor release).
   ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
   ~~~
 - ~~~ scala
   // Your next release will be both binary compatible and source compatible
-  // with the previous one.
+  // with the previous one (ie, it will be a patch release).
   ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
   ~~~
 
-The plugin uses [MiMa] to check for incompatibilities with the previous
-release. The previous release version is automatically computed from
-the current value of the `version` key in your build. This means that
-you have to set this key to the _next_ version you want to release:
+#### 2. Run `versionPolicyCheck`
 
+The task `versionPolicyCheck` will report any incompatibilities beyond the intended compatibility level. You typically want to run this task in your CI pipeline to fail it when the changes in a pull request violate the intended compatibility level.
+
+~~~ shell
+sbt versionPolicyCheck
 ~~~
+
+The task `versionPolicyCheck` checks that the dependencies of the module did not change in an incompatible way (for instance, if the intended compatibility level is `BinaryCompatible`, you cannot bump a dependency of your module to a new major version, otherwise the classpath would end up not being binary compatible), and that the code changes in the module itself do not violate the intended compatibility level (ie, it checks that the type signatures of existing public methods stay unchanged if the compatibility level is `BinaryCompatible`). [More details](#how-does-versionpolicycheck-work).
+
+The plugin uses [MiMa] to check for incompatibilities with the previous release. To achieve this, it has to know what was the previous release version. By default, the previous release version is automatically computed from the current value of the `version` key in your build (more details [here](#automatic-previous-version-calculation)). This means that you have to set this key to the _next_ version you want to release:
+
+~~~ scala
 // Next version will be 1.1.0
 ThisBuild / version := "1.1.0"
 ~~~
 
-In case you use a plugin like [sbt-dynver], which automatically sets
-the `version` based on the Git status, [read below](#how-to-integrate-with-sbt-dynver).
+In practice, the way the version is defined in your build depends on your release process. For instance, if you use a plugin like [sbt-dynver] or [sbt-ci-release], which automatically set
+the `version` based on the Git status, [read below](#how-to-integrate-with-sbt-dynver). If you use [sbt-release], read the [corresponding section](#how-to-integrate-with-sbt-release).
 
-## Use
+Alternatively, you can define your own logic to compute the previous version (e.g. to not require the `version` to be set) by redefining the setting `versionPolicyPreviousVersions`.
 
-### Check that pull requests don’t break the intended compatibility level
+Note that `versionPolicyCheck` fails if it finds incompatibilities that violate the intended compatibility level. If you want to find such incompatibilities without failing, use the task `versionPolicyFindIssues`.
 
-In your CI server, run the task `versionPolicyCheck` on pull requests.
+### How to check that the release version is valid with respect to the compatibility guarantees it provides?
 
-~~~
-$ sbt versionPolicyCheck
-~~~
+Some release processes require you to manually set the release version. This is the case for all the release processes triggered by pushing a Git tag, such as [sbt-ci-release].
 
-This task checks that the PR does not break the compatibility guarantees
-claimed by your `versionPolicyIntention`. For instance, if your intention
-is to have `BinaryAndSourceCompatible` changes, the task
-`versionPolicyCheck` will fail if the PR breaks binary compatibility
-or source compatibility.
+In such a case, your release process should check that the version you set is valid with respect to the compatibility guarantees of the release (as defined by `versionPolicyIntention`). For instance, a release that breaks the binary compatibility should bump the major version number.
 
-### Check that release version numbers are valid with respect to the compatibility guarantees they provide
+You can check that by running the task `versionCheck` in your release process:
 
-Before you cut a release, run the task `versionCheck`.
+1. set the `version` to the new release version (e.g., `"1.2.3"`),
+2. make sure `versionPolicyIntention` is set to the intended compatibility level of the release,
+3. run `sbt versionCheck` before publishing your module artifacts.
 
-~~~
-$ sbt versionCheck
-~~~
-
-Note: make sure that the `version` is set to the new release version
-number before you run `versionCheck`.
-
-This task checks that the release version number is consistent with the
+The task `versionCheck` checks that the release version number is consistent with the
 intended compatibility level as per `versionPolicyIntention`. For instance,
 if your intention is to publish a release that breaks binary compatibility,
 the task `versionCheck` will fail if you didn’t bump the major version
 number.
 
-## How to integrate with `sbt-ci-release`?
+See below how to integrate [with sbt-ci-release](#how-to-integrate-with-sbt-ci-release) or [with sbt-release](#how-to-integrate-with-sbt-release) for instructions specific to these release processes.
 
-sbt-version-policy itself uses sbt-version-policy and [sbt-ci-release](https://github.com/olafurpg/sbt-ci-release).
+### How to assess the compatibility level of a project?
+
+In case you don’t want to force a compatibility level but are interested in knowing the current level of compatibility of the project compared to its previous version, you can use the task `versionPolicyAssessCompatibility`:
+
+1. do not assign a value to `versionPolicyIntention`,
+2. set the `version` to the next release version,
+3. use the task `versionPolicyAssessCompatibility` to compute the compatibility level.
+
+The reason why you need to set the `version` to the next release version before running `versionPolicyAssessCompatiblity` is because we use it to compute the previous release version, against which assess the compatibility level. Alternatively, you can manually define the previous release version by redefining the setting `versionPolicyPreviousVersions`.
+
+## Integrate with your release process
+
+Some release processes require you to define the release version beforehand (e.g., [sbt-ci-release]), and some of them compute the release version as part of the process (e.g., [sbt-release]). That difference impacts the integration with sbt-version-policy.
+
+### How to integrate with `sbt-ci-release`?
+
+[sbt-ci-release] uses Git tags to compute the project version. You can integrate sbt-version-policy into a project that uses [sbt-ci-release] as follows:
+
+- check that incoming pull requests do not violate the intended compatibility level ([detailed documentation](#how-to-check-that-a-project-does-not-violate-the-desired-compatibility-level))
+  1. if your project contains multiple sub-projects, set `versionPolicyIgnoredInternalDependencyVersions` as explained in the [sbt-dynver integration](#supporting-multi-projects-builds):
+     ~~~ scala
+     versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
+     ~~~
+  2. set the intended compatibility level of the next release with the setting `versionPolicyIntention`
+  3. run `sbt versionPolicyCheck` in your CI pipeline:
+     ~~~ yaml
+     steps
+       - name: Check compatibility
+         run: sbt versionPolicyCheck
+     ~~~
+- check that a new release version is valid with respect to its compatibility guarantees ([detailed documentation](#how-to-check-that-the-release-version-is-valid-with-respect-to-the-compatibility-guarantees-it-provides))
+  1. run `sbt versionCheck` in your CI pipeline before running `ci-release`:
+     ~~~ yaml
+     steps
+       - name: Release
+         run: sbt versionCheck ci-release
+     ~~~
+
+Since [sbt-ci-release] uses [sbt-dynver] under the hood, please
+read over the [next section](#how-to-integrate-with-sbt-dynver).
+
+#### Examples
+
+sbt-version-policy itself uses sbt-version-policy and [sbt-ci-release].
 You can have a look at our [Github workflow](./.github/workflows/ci.yml) as an example of integration.
-
-The key step is to run the task `versionCheck` before running the command `ci-release` (assuming the task
-`versionPolicyCheck` has run already, in another step of the CI pipeline):
-
-~~~ yaml
-steps
-  - name: Release
-    run: sbt versionCheck ci-release
-~~~
 
 You can also have a look at the test [example-sbt-ci-release](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-ci-release)
 for a minimalistic sbt project using both sbt-version-policy and sbt-ci-release.
 
-Last, since `sbt-ci-release` uses `sbt-dynver` under the hood, please
-read over the next section.
-
-## How to integrate with `sbt-dynver`?
+### How to integrate with `sbt-dynver`?
 
 `sbt-dynver` generates version numbers looking like `1.2.3+4-abcd1234` when the Git history
 contains commits, or changes, after the last tag.
 
-### Supporting multi-projects builds
+#### Supporting multi-projects builds
 
 The version numbers generated by sbt-dynver are usually not a problem, except when checking for dependency issues
 between projects of the current build (e.g., if a project `a` depends on another project `b`
@@ -130,7 +166,7 @@ projects when their version number matches some regular expression:
 ThisBuild / versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
 ~~~
 
-### Unsupported custom `dynverSeparator`
+#### Unsupported custom `dynverSeparator`
 
 When sbt-version-policy computes the previous version of the release, it 
 only supports `"+"` as a `dynverSeparator`.
@@ -145,29 +181,71 @@ is to keep the default `dynverSeparator` value (`"+"`), and to tweak the
 Docker / version := version.value.replace('+', '-')
 ~~~
 
-### Example
+#### Example
 
 You can have a look at the test [example-sbt-dynver](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-dynver)
 for a minimalistic sbt project using both sbt-version-policy and sbt-dynver.
 
-## How to integrate with `sbt-release`?
+### How to integrate with `sbt-release`?
 
-[sbt-release](https://github.com/sbt/sbt-release) is able to run sophisticated release pipelines
+[sbt-release] is able to run sophisticated release pipelines
 including running the tests, setting the release version, publishing the artifacts, and pushing
 a Git tag named after the release version.
+
+There are two ways to use sbt-version-policy along with sbt-release:
+ - define the intended compatibility level of the next release, and check that the changes applied to the project do not violate it,
+ - or, let the project evolve freely and, at the time of the release, compute the release version according to the level of incompatibilities introduced in the project.
+
+#### Constrained compatibility level
+
+In this mode, you can use sbt-version-policy to check that incoming pull requests do not violate the intended compatibility level, and to compute the next release version according to the compatibility level.
+
+- check that incoming pull requests do not violate the intended compatibility level ([detailed documentation](#how-to-check-that-a-project-does-not-violate-the-desired-compatibility-level))
+  1. set the intended compatibility level of the next release with the setting `versionPolicyIntention`
+  2. run `sbt versionPolicyCheck` in your CI pipeline:
+     ~~~ yaml
+     steps
+       - name: Check compatibility
+         run: sbt versionPolicyCheck
+     ~~~
+- compute the next release version according to its compatibility guarantees
+    1. set the key `releaseVersion` as follows:
+       ~~~ scala
+       releaseVersion := {
+         val maybeBump = versionPolicyIntention.value match {
+            case Compatibility.None                      => Some(Version.Bump.Major)
+            case Compatibility.BinaryCompatible          => Some(Version.Bump.Minor)
+            case Compatibility.BinaryAndSourceCompatible => None // No need to bump the patch version, because it has already been bumped when sbt-release set the next release version
+          }
+          { (currentVersion: String) =>
+            val versionWithoutQualifier =
+              Version(currentVersion)
+                .getOrElse(versionFormatError(currentVersion))
+                .withoutQualifier
+            (maybeBump match {
+              case Some(bump) => versionWithoutQualifier.bump(bump)
+              case None       => versionWithoutQualifier
+            }).string
+          }
+       }
+       ~~~
+    2. Reset `versionPolicyIntention` to `Compatibility.BinaryAndSourceCompatible` after every release.
+       This can be achieved by managing the setting `versionPolicyIntention` in a separate file (like [sbt-release] manages the setting `version` in a separate file, by default), and by adding a step that overwrites the content of that file and commits it.
+
+##### Example
 
 You can have a look at the test [example-sbt-release](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-release)
 for an example of sbt project using both sbt-version-policy and sbt-release.
 
-This example project customizes sbt-release to:
+#### Unconstrained compatibility level
 
-1. Compute the release version based on its compatibility guarantees (as per `versionPolicyIntention`).
-   
-   We achieve this by setting `releaseVersion` like the following:
+In this mode, you can use sbt-version-policy to assess the incompatibilities introduced in the project since the last release and compute the new release version accordingly (ie, to bump the major version number if you introduced binary incompatibilities):
 
+1. make sure `versionPolicyIntention` is not set
+2. define `releaseVersion` from the compatibility level returned by `versionPolicyAssessCompatibility`
    ~~~ scala
    releaseVersion := {
-     val maybeBump = versionPolicyIntention.value match {
+     val maybeBump = versionPolicyAssessCompatibility.value match {
         case Compatibility.None                      => Some(Version.Bump.Major)
         case Compatibility.BinaryCompatible          => Some(Version.Bump.Minor)
         case Compatibility.BinaryAndSourceCompatible => None // No need to bump the patch version, because it has already been bumped when sbt-release set the next release version
@@ -184,20 +262,6 @@ This example project customizes sbt-release to:
       }
    }
    ~~~
-
-2. Run `versionCheck` after setting the release version, by adding the following
-   release step:
-
-   ~~~ scala
-   releaseStepCommand("versionCheck")
-   ~~~ 
-
-3. Reset `versionPolicyIntention` to `Compatibility.BinaryAndSourceCompatible` after
-   every release.
-   
-   We achieve this by managing the setting `versionPolicyIntention` in a separate file
-   (like sbt-release manages the setting `version` in a separate file, by default),
-   and by adding a step that overwrites the content of that file and commits it.
 
 ## How does `versionPolicyCheck` work?
 
@@ -321,4 +385,6 @@ versionPolicyModuleVersionExtractor := {
 
 [recommended versioning scheme]: https://docs.scala-lang.org/overviews/core/binary-compatibility-for-library-authors.html#recommended-versioning-scheme
 [MiMa]: https://github.com/lightbend/mima
-[sbt-dynver]: https://github.com/dwijnand/sbt-dynver
+[sbt-dynver]: https://github.com/sbt/sbt-dynver
+[sbt-release]: https://github.com/sbt/sbt-release
+[sbt-ci-release]: https://github.com/sbt/sbt-ci-release

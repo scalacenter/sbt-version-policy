@@ -1,0 +1,24 @@
+> v1-0-0/publishLocal
+> reload
+
+> v1-0-1/checkAssessedCompatibilityIsBinaryAndSourceCompatible
+> v1-0-1/publishLocal
+> reload
+
+> v1-0-2/checkAssessedCompatibilityIsBinaryAndSourceCompatible
+> v1-0-2/publishLocal
+> reload
+
+> v1-1-0/checkAssessedCompatibilityIsBinaryCompatible
+> v1-1-0/publishLocal
+> reload
+
+> v1-2-0/checkAssessedCompatibilityIsBinaryCompatible
+> v1-2-0/publishLocal
+> reload
+
+> v2-0-0/checkAssessedCompatibilityIsNone
+> v2-0-0/publishLocal
+> reload
+
+> v3-0-0/checkAssessedCompatibilityIsNone
