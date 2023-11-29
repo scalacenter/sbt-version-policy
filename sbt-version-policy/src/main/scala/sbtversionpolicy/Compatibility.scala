@@ -90,4 +90,12 @@ object Compatibility {
     }
   }
 
+  // Ordering from the least compatible to the most compatible
+  implicit val ordering: Ordering[Compatibility] =
+    Ordering.by {
+      case Compatibility.None                      => 0
+      case Compatibility.BinaryCompatible          => 1
+      case Compatibility.BinaryAndSourceCompatible => 3
+    }
+
 }
