@@ -20,13 +20,10 @@ trait SbtVersionPolicyKeys {
   final val versionCheck                        = taskKey[Unit]("Checks that the version is consistent with the intended compatibility level defined via versionPolicyIntention")
 
   final val versionPolicyIgnored        = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")
-  // Note: defined as a def because adding a val to a trait is not binary compatible
-  final def versionPolicyIgnoredInternalDependencyVersions = SettingKey[Option[Regex]]("versionPolicyIgnoredInternalDependencyVersions", "Exclude dependencies to projects of the current build whose version matches this regular expression.")
+  final val versionPolicyIgnoredInternalDependencyVersions = settingKey[Option[Regex]]("Exclude dependencies to projects of the current build whose version matches this regular expression.")
 
-  final def versionPolicyModuleVersionExtractor = SettingKey[PartialFunction[ModuleID, String]]("versionPolicyModuleVersionExtractor", "Parse version number from ModuleId. Defaults to `_.revision`")
+  final val versionPolicyModuleVersionExtractor = settingKey[PartialFunction[ModuleID, String]]("Parse version number from ModuleId. Defaults to `_.revision`")
 
-  @deprecated("Use libraryDependencySchemes instead", "1.1.0")
-  final val versionPolicyDependencySchemes        = settingKey[Seq[ModuleID]]("""Versioning schemes for the library dependencies (e.g. "org.scala-lang" % "scala-compiler" % "strict")""")
   final val versionPolicyDefaultScheme            = settingKey[Option[VersionCompatibility]]("Fallback reconciliation used to evaluate version policy issues in the library dependency.")
   final val versionPolicyDefaultDependencySchemes = settingKey[Seq[ModuleID]]("Fallback rules used to evaluate version policy issues in the library dependency.")
 
