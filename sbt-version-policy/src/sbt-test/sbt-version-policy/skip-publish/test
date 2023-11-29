@@ -8,3 +8,7 @@
 > set v101/publish/skip := true
 > v101/versionPolicyCheck
 > v101/versionCheck
+
+-> root/versionPolicyAssessCompatibility
+> set root/publish/skip := true
+> root/versionPolicyAssessCompatibility

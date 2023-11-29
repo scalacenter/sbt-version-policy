@@ -314,22 +314,35 @@ object SbtVersionPolicySettings {
         }
       }
     }.value,
-    versionPolicyFindIssues := {
-      val dependencyIssues = versionPolicyFindDependencyIssues.value
-      val mimaIssues = versionPolicyFindMimaIssues.value
-      assert(
-        dependencyIssues.map(_._1.revision).toSet == mimaIssues.map(_._1.revision).toSet,
-        "Dependency issues and Mima issues must be checked against the same previous releases"
-      )
-      for ((previousModule, dependencyReport) <- dependencyIssues) yield {
-        val (_, problems) =
-          mimaIssues
-            .find { case (id, _) => previousModule.revision == id.revision }
-            .get // See assertion above
-        previousModule -> (dependencyReport, problems)
-      }
-    },
-    versionPolicyAssessCompatibility := {
+    versionPolicyFindIssues := Def.ifS((versionPolicyFindIssues / skip).toTask)(Def.task {
+      streams.value.log.debug("Not finding incompatibilities with previous releases because 'versionPolicyFindIssues / skip' is 'true'")
+      Seq.empty[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]
+    })(
+      Def.ifS[Seq[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]](Def.task {
+        versionPolicyPreviousVersions.value.isEmpty
+      })(Def.task {
+        throw new MessageOnlyException("Unable to find compatibility issues because versionPolicyPreviousVersions is empty.")
+      })(Def.task {
+        versionPolicyPreviousVersions.value
+        val dependencyIssues = versionPolicyFindDependencyIssues.value
+        val mimaIssues = versionPolicyFindMimaIssues.value
+        assert(
+          dependencyIssues.map(_._1.revision).toSet == mimaIssues.map(_._1.revision).toSet,
+          "Dependency issues and Mima issues must be checked against the same previous releases"
+        )
+        for ((previousModule, dependencyReport) <- dependencyIssues) yield {
+          val (_, problems) =
+            mimaIssues
+              .find { case (id, _) => previousModule.revision == id.revision }
+              .get // See assertion above
+          previousModule -> (dependencyReport, problems)
+        }
+      })
+    ).value,
+    versionPolicyAssessCompatibility := Def.ifS((versionPolicyAssessCompatibility / skip).toTask)(Def.task {
+      streams.value.log.debug("Not assessing the compatibility with previous releases because 'versionPolicyAssessCompatibility / skip' is 'true'")
+      Seq.empty[(ModuleID, Compatibility)]
+    })(Def.task {
       // Results will be flawed if the `versionPolicyIntention` is set to `BinaryCompatible` or `None`
       // because `versionPolicyFindIssues` only reports the issues that violate the intended compatibility level
       if (versionPolicyIntention.?.value.exists(_ != Compatibility.BinaryAndSourceCompatible)) {
@@ -353,12 +366,14 @@ object SbtVersionPolicySettings {
           }
         previousRelease -> compatibility
       }
-    }
+    }).value
   )
 
   def skipSettings = Seq(
     versionCheck / skip := (publish / skip).value,
-    versionPolicyCheck / skip := (publish / skip).value
+    versionPolicyCheck / skip := (publish / skip).value,
+    versionPolicyFindIssues / skip := (publish / skip).value,
+    versionPolicyAssessCompatibility / skip := (publish / skip).value,
   )
 
   def schemesGlobalSettings = Seq(
