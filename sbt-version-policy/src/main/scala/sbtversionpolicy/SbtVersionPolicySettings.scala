@@ -55,7 +55,6 @@ object SbtVersionPolicySettings {
   )
 
   def reconciliationSettings = Def.settings(
-    versionPolicyDependencySchemes ++= libraryDependencySchemes.value,
     versionPolicyFallbackReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
@@ -80,7 +79,7 @@ object SbtVersionPolicySettings {
     versionPolicyDetailedReconciliations := {
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      versionPolicyDependencySchemes.value.map { mod =>
+      libraryDependencySchemes.value.map { mod =>
         val rec = VersionCompatibility(mod.revision) match {
           case Some(r) => r
           case None => sys.error(s"Unrecognized reconciliation '${mod.revision}' in $mod")
@@ -377,7 +376,6 @@ object SbtVersionPolicySettings {
   )
 
   def schemesGlobalSettings = Seq(
-    versionPolicyDependencySchemes := Seq.empty,
     versionScheme := Some("early-semver")
   )
 
