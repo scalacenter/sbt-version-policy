@@ -12,7 +12,7 @@ inThisBuild(List(
       url("https://github.com/alexarchambault")
     )
   ),
-  versionPolicyIntention := Compatibility.BinaryAndSourceCompatible,
+  versionPolicyIntention := Compatibility.None,
   libraryDependencySchemes += "com.typesafe" %% "mima-core" % "semver-spec"
 ))
 
@@ -30,17 +30,12 @@ lazy val `sbt-version-policy` = project
     scriptedBufferLog := false,
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.3"),
     libraryDependencies ++= Seq(
-      "io.github.alexarchambault" %% "data-class" % "0.2.6" % Provided,
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-    ),
-    libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "1.0.18",
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
     ),
     testFrameworks += new TestFramework("verify.runner.Framework"),
     mimaBinaryIssueFilters ++= Seq(
-      // this class is `private` and it's only used from `extractSemVerNumbers` method, which is private
-      ProblemFilters.exclude[MissingClassProblem]("sbtversionpolicy.DependencyCheckReport$SemVerVersion*")
+      // Add Mima filters here
     ),
   )

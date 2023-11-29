@@ -52,9 +52,8 @@ lazy val check = taskKey[Unit]("")
 
 lazy val checkFails = Def.settings(
   check := {
-    val direction = versionPolicyCheckDirection.value
     val reports = versionPolicyFindDependencyIssues.value
-    val failed = reports.exists(!_._2.validated(direction))
+    val failed = reports.exists(!_._2.validated(sbtversionpolicy.IncompatibilityType.BinaryIncompatibility))
     assert(failed, s"Expected a failed report in $reports")
   }
 )

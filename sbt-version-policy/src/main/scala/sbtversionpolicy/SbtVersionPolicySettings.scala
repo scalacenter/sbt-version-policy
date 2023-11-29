@@ -1,13 +1,14 @@
 package sbtversionpolicy
 
-import com.typesafe.tools.mima.plugin.{MimaPlugin, SbtMima}
+import com.typesafe.tools.mima.core.Problem
+import com.typesafe.tools.mima.plugin.MimaPlugin
 import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
-import sbt._
-import sbt.Keys._
+import sbt.*
+import sbt.Keys.*
 import sbt.librarymanagement.CrossVersion
 import lmcoursier.CoursierDependencyResolution
 import sbtversionpolicy.internal.{DependencyCheck, DependencySchemes, MimaIssues}
-import sbtversionpolicy.SbtVersionPolicyMima.autoImport._
+import sbtversionpolicy.SbtVersionPolicyMima.autoImport.*
 
 import scala.util.Try
 
@@ -44,7 +45,6 @@ object SbtVersionPolicySettings {
   )
 
   def reconciliationGlobalSettings = Def.settings(
-    versionPolicyCheckDirection := Direction.backward,
     versionPolicyIgnoreSbtDefaultReconciliations := true,
     versionPolicyUseCsrConfigReconciliations := true,
     versionPolicyDefaultDependencySchemes := defaultSchemes,
@@ -120,7 +120,7 @@ object SbtVersionPolicySettings {
 
       val compatibilityIntention =
         versionPolicyIntention.?.value
-          .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
+          .getOrElse(Compatibility.BinaryAndSourceCompatible) // If not defined, report all the possible incompatibilities
       val depRes = versionPolicyDependencyResolution.value
       val scalaModuleInf = versionPolicyScalaModuleInfo.value
       val updateConfig = versionPolicyUpdateConfiguration.value
@@ -150,7 +150,6 @@ object SbtVersionPolicySettings {
         previousModuleIds.map { previousModuleId =>
 
           val report0 = DependencyCheck.report(
-            compatibilityIntention,
             excludedModules,
             currentDependencies,
             previousModuleId,
@@ -174,7 +173,6 @@ object SbtVersionPolicySettings {
       val log = streams.value.log
       val sv = scalaVersion.value
       val sbv = scalaBinaryVersion.value
-      val direction = versionPolicyCheckDirection.value
       val reports = versionPolicyFindDependencyIssues.value
       val intention =
         versionPolicyIntention.?.value
@@ -182,31 +180,36 @@ object SbtVersionPolicySettings {
       val currentModule = projectID.value
       val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
 
-      val ignored = versionPolicyIgnored.value
-        .map { orgName =>
-          val mod = orgName % "foo"
-          val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
-          (mod.organization, name)
-        }
-        .toSet
+      if (intention == Compatibility.None) {
+        log.info(s"Not checking dependencies compatibility of module ${nameAndRevision(currentModule)} because versionPolicyIntention is set to 'Compatibility.None'")
+      } else {
 
-      var anyError = false
-      for ((previousModule, report) <- reports) {
-        val (warnings, errors) = report.errors(direction, ignored)
-        if (errors.nonEmpty) {
-          anyError = true
-          log.error(s"Incompatibilities with dependencies of ${nameAndRevision(previousModule)}")
-          for (error <- errors)
-            log.error("  " + error)
-        }
-      }
+        val ignored = versionPolicyIgnored.value
+          .map { orgName =>
+            val mod = orgName % "foo"
+            val name = CrossVersion(mod.crossVersion, sv, sbv).fold(mod.name)(_(mod.name))
+            (mod.organization, name)
+          }
+          .toSet
 
-      if (anyError)
-        throw new MessageOnlyException(s"Dependencies of module ${nameAndRevision(currentModule)} break the intended compatibility guarantees 'Compatibility.${intention}' (see messages above). You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
-      else {
-        if (intention == Compatibility.None) {
-          log.info(s"Not checking dependencies compatibility of module ${nameAndRevision(currentModule)} because versionPolicyIntention is set to 'Compatibility.None'")
-        } else {
+        val incompatibilityType =
+          if (intention == Compatibility.BinaryCompatible) IncompatibilityType.BinaryIncompatibility
+          else IncompatibilityType.SourceIncompatibility
+
+        var anyError = false
+        for ((previousModule, report) <- reports) {
+          val (warnings, errors) = report.errors(incompatibilityType, ignored)
+          if (errors.nonEmpty) {
+            anyError = true
+            log.error(s"Incompatibilities with dependencies of ${nameAndRevision(previousModule)}")
+            for (error <- errors)
+              log.error("  " + error)
+          }
+        }
+
+        if (anyError)
+          throw new MessageOnlyException(s"Dependencies of module ${nameAndRevision(currentModule)} break the intended compatibility guarantees 'Compatibility.${intention}' (see messages above). You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
+        else {
           log.info(s"Module ${nameAndRevision(currentModule)} has no dependency issues with ${formattedPreviousVersions} (versionPolicyIntention is set to 'Compatibility.${intention}')")
         }
       }
@@ -244,78 +247,133 @@ object SbtVersionPolicySettings {
       val ignored1 = versionPolicyMimaCheck.value
       val ignored2 = versionPolicyReportDependencyIssues.value
     }).value,
-    versionPolicyForwardCompatibilityCheck := {
-      import MimaPlugin.autoImport._
-      val it = MimaIssues.forwardBinaryIssuesIterator.value
-      it.foreach {
-        case (moduleId, problems) =>
-          SbtMima.reportModuleErrors(
-            moduleId,
-            problems._1,
-            problems._2,
-            true,
-            mimaBinaryIssueFilters.value,
-            mimaBackwardIssueFilters.value,
-            mimaForwardIssueFilters.value,
-            Keys.streams.value.log,
-            name.value,
-          )
+    // For every previous module, returns a list of problems paired with the type of incompatibility
+    versionPolicyFindMimaIssues := Def.taskDyn[Seq[(ModuleID, Seq[(IncompatibilityType, Problem)])]] {
+      val compatibility =
+        versionPolicyIntention.?.value.getOrElse(Compatibility.BinaryAndSourceCompatible)
+      compatibility match {
+        case Compatibility.None =>
+          Def.task { Nil }
+        case Compatibility.BinaryCompatible | Compatibility.BinaryAndSourceCompatible =>
+          Def.task {
+            MimaIssues.binaryIssuesIterator.value.map { case (previousModule, (binaryIncompatibilities, sourceIncompatibilities)) =>
+              def annotatedBinaryIncompatibilities = binaryIncompatibilities.map(IncompatibilityType.BinaryIncompatibility -> _)
+              def annotatedSourceIncompatibilities = sourceIncompatibilities.map(IncompatibilityType.SourceIncompatibility -> _)
+              val incompatibilities =
+                if (compatibility == Compatibility.BinaryCompatible) annotatedBinaryIncompatibilities
+                else annotatedBinaryIncompatibilities ++ annotatedSourceIncompatibilities
+              previousModule -> incompatibilities
+            }.toSeq
+          }
       }
-    },
-    versionPolicyVersionCompatResult := {
-      val ver = version.value
-      val prevs = versionPolicyPreviousVersions.value
-      if (prevs.nonEmpty) {
-        val maxPrev = prevs.map(Version(_)).max.repr
-        val compat = versionPolicyVersionCompatibility.value
-        Compatibility(maxPrev, ver, compat)
-      }
-      else Compatibility.None
-    },
+    }.value,
     versionPolicyMimaCheck := Def.taskDyn {
-      import Compatibility._
+      import Compatibility.*
       val compatibility =
         versionPolicyIntention.?.value
           .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
       val log = streams.value.log
       val currentModule = projectID.value
-      val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
-
-      val reportBackwardBinaryCompatibilityIssues: Def.Initialize[Task[Unit]] =
-        MimaPlugin.autoImport.mimaReportBinaryIssues.result.map(_.toEither.left.foreach { error =>
-          log.error(s"Module ${nameAndRevision(currentModule)} is not binary compatible with ${formattedPreviousVersions}. You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
-          throw new MessageOnlyException(error.directCause.map(_.toString).getOrElse("mimaReportBinaryIssues failed"))
-        })
-
-      val reportForwardBinaryCompatibilityIssues: Def.Initialize[Task[Unit]] =
-        versionPolicyForwardCompatibilityCheck.result.map(_.toEither.left.foreach { error =>
-          log.error(s"Module ${nameAndRevision(currentModule)} is not source compatible with ${formattedPreviousVersions}. You have to relax your compatibility intention by changing the value of versionPolicyIntention.")
-          throw new MessageOnlyException(error.directCause.map(_.toString).getOrElse("versionPolicyForwardCompatibilityCheck failed"))
-        })
+      val formattedModule = nameAndRevision(currentModule)
 
       compatibility match {
-        case BinaryCompatible =>
-          reportBackwardBinaryCompatibilityIssues.map { _ =>
-            log.info(s"Module ${nameAndRevision(currentModule)} is binary compatible with ${formattedPreviousVersions}")
-          }
-        case BinaryAndSourceCompatible =>
+        case BinaryCompatible | BinaryAndSourceCompatible =>
           Def.task {
-            val ignored1 = reportForwardBinaryCompatibilityIssues.value
-            val ignored2 = reportBackwardBinaryCompatibilityIssues.value
-          }.map { _ =>
-            log.info(s"Module ${nameAndRevision(currentModule)} is binary and source compatible with ${formattedPreviousVersions}")
+            val issues = versionPolicyFindMimaIssues.value
+            val formattedCompatibility = if (compatibility == BinaryCompatible) "binary" else "binary and source"
+            var hadErrors = false
+            for ((previousModule, problems) <- issues) {
+              val formattedPreviousModule = nameAndRevision(previousModule)
+              if (problems.isEmpty) {
+                log.info(s"Module ${formattedModule} is ${formattedCompatibility} compatible with ${formattedPreviousModule}")
+              } else {
+                val formattedProblems =
+                  problems.map { case (incompatibilityType, problem) =>
+                    val affected = incompatibilityType match {
+                      case IncompatibilityType.BinaryIncompatibility => "current"
+                      case IncompatibilityType.SourceIncompatibility => "previous"
+                    }
+                    val howToFilter = problem.howToFilter.fold("")(hint => s"\n     filter with: ${hint}")
+                    s"   * ${problem.description(affected)}${howToFilter}"
+                  }.mkString("\n")
+                log.error(
+                  s"""Module ${formattedModule} is not ${formattedCompatibility} compatible with ${formattedPreviousModule}.
+                     |You have to relax our compatibility intention by changing the value of versionPolicyIntention, or to fix the incompatibilities.
+                     |We found the following incompatibilities:
+                     |${formattedProblems}""".stripMargin)
+                hadErrors = true
+              }
+            }
+            if (hadErrors) {
+              throw new MessageOnlyException("versionPolicyMimaCheck failed")
+            }
           }
         case None => Def.task {
-          // skip mima if no compatibility is intented
-          log.info(s"Not checking compatibility of module ${nameAndRevision(currentModule)} because versionPolicyIntention is set to 'Compatibility.None'")
+          // skip Mima if no compatibility is intended
+          log.info(s"Not checking compatibility of module ${formattedModule} because versionPolicyIntention is set to 'Compatibility.None'")
         }
       }
-    }.value
+    }.value,
+    versionPolicyFindIssues := Def.ifS((versionPolicyFindIssues / skip).toTask)(Def.task {
+      streams.value.log.debug("Not finding incompatibilities with previous releases because 'versionPolicyFindIssues / skip' is 'true'")
+      Seq.empty[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]
+    })(
+      Def.ifS[Seq[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]](Def.task {
+        versionPolicyPreviousVersions.value.isEmpty
+      })(Def.task {
+        throw new MessageOnlyException("Unable to find compatibility issues because versionPolicyPreviousVersions is empty.")
+      })(Def.task {
+        versionPolicyPreviousVersions.value
+        val dependencyIssues = versionPolicyFindDependencyIssues.value
+        val mimaIssues = versionPolicyFindMimaIssues.value
+        assert(
+          dependencyIssues.map(_._1.revision).toSet == mimaIssues.map(_._1.revision).toSet,
+          "Dependency issues and Mima issues must be checked against the same previous releases"
+        )
+        for ((previousModule, dependencyReport) <- dependencyIssues) yield {
+          val (_, problems) =
+            mimaIssues
+              .find { case (id, _) => previousModule.revision == id.revision }
+              .get // See assertion above
+          previousModule -> (dependencyReport, problems)
+        }
+      })
+    ).value,
+    versionPolicyAssessCompatibility := Def.ifS((versionPolicyAssessCompatibility / skip).toTask)(Def.task {
+      streams.value.log.debug("Not assessing the compatibility with previous releases because 'versionPolicyAssessCompatibility / skip' is 'true'")
+      Seq.empty[(ModuleID, Compatibility)]
+    })(Def.task {
+      // Results will be flawed if the `versionPolicyIntention` is set to `BinaryCompatible` or `None`
+      // because `versionPolicyFindIssues` only reports the issues that violate the intended compatibility level
+      if (versionPolicyIntention.?.value.exists(_ != Compatibility.BinaryAndSourceCompatible)) {
+        throw new MessageOnlyException("versionPolicyIntention should not be set when you run versionPolicyAssessCompatibility.")
+      }
+      val issues = versionPolicyFindIssues.value
+      issues.map { case (previousRelease, (dependencyIssues, mimaIssues)) =>
+        val compatibility =
+          if (
+            dependencyIssues.validated(IncompatibilityType.SourceIncompatibility) &&
+              mimaIssues.isEmpty
+          ) {
+            Compatibility.BinaryAndSourceCompatible
+          } else if (
+            dependencyIssues.validated(IncompatibilityType.BinaryIncompatibility) &&
+              !mimaIssues.exists(_._1 == IncompatibilityType.BinaryIncompatibility)
+          ) {
+            Compatibility.BinaryCompatible
+          } else {
+            Compatibility.None
+          }
+        previousRelease -> compatibility
+      }
+    }).value
   )
 
   def skipSettings = Seq(
     versionCheck / skip := (publish / skip).value,
-    versionPolicyCheck / skip := (publish / skip).value
+    versionPolicyCheck / skip := (publish / skip).value,
+    versionPolicyFindIssues / skip := (publish / skip).value,
+    versionPolicyAssessCompatibility / skip := (publish / skip).value,
   )
 
   def schemesGlobalSettings = Seq(

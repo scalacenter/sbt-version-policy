@@ -1,42 +1,36 @@
 package sbtversionpolicy
 
 import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
-import dataclass.data
-import lmcoursier.definitions.{ModuleMatchers => _, _}
+import lmcoursier.definitions.{ModuleMatchers => *, *}
 
-@data class DependencyCheckReport(
-  backwardStatuses: Map[(String, String), DependencyCheckReport.ModuleStatus],
-  forwardStatuses: Map[(String, String), DependencyCheckReport.ModuleStatus]
+case class DependencyCheckReport(
+  compatibilityReports: Map[IncompatibilityType, Map[(String, String), DependencyCheckReport.ModuleStatus]]
 ) {
-  def validated(direction: Direction): Boolean =
-    (!direction.backward || backwardStatuses.forall(_._2.validated)) &&
-      (!direction.forward || forwardStatuses.forall(_._2.validated))
 
-  def errors(direction: Direction, ignored: Set[(String, String)] = Set.empty): (Seq[String], Seq[String]) = {
+  def validated(incompatibilityType: IncompatibilityType): Boolean =
+    compatibilityReports(incompatibilityType).forall(_._2.validated)
 
-    val backwardElems =
-      if (direction.backward) backwardStatuses else Map()
-    val forwardElems =
-      if (direction.forward) forwardStatuses else Map()
+  def errors(incompatibilityType: IncompatibilityType, ignored: Set[(String, String)] = Set.empty): (Seq[String], Seq[String]) = {
 
-    val baseErrors = (backwardElems.iterator.map((_, true)) ++ forwardElems.iterator.map((_, false)))
-      .filter(!_._1._2.validated)
+    val relevantErrors = compatibilityReports(incompatibilityType)
+
+    val baseErrors = relevantErrors
+      .filter(!_._2.validated)
       .toVector
-      .sortBy(_._1._1)
+      .sortBy(_._1)
 
-    def message(org: String, name: String, backward: Boolean, status: DependencyCheckReport.ModuleStatus): String = {
-      val direction = if (backward) "backward" else "forward"
+    def message(org: String, name: String, status: DependencyCheckReport.ModuleStatus): String = {
       s"$org:$name: ${status.message}"
     }
 
     val actualErrors = baseErrors.collect {
-      case ((orgName @ (org, name), status), backward) if !ignored(orgName) =>
-        message(org, name, backward, status)
+      case (orgName @ (org, name), status) if !ignored(orgName) =>
+        message(org, name, status)
     }
 
     val warnings = baseErrors.collect {
-      case ((orgName @ (org, name), status), backward) if ignored(orgName) =>
-        message(org, name, backward, status)
+      case (orgName @ (org, name), status) if ignored(orgName) =>
+        message(org, name, status)
     }
 
     (warnings, actualErrors)
@@ -48,49 +42,35 @@ object DependencyCheckReport {
   sealed abstract class ModuleStatus(val validated: Boolean) extends Product with Serializable {
     def message: String
   }
-  @data class SameVersion(version: String) extends ModuleStatus(true) {
+  case class SameVersion(version: String) extends ModuleStatus(true) {
     def message = s"found same version $version"
   }
-  @data class CompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(true) {
+  case class CompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(true) {
     def message = s"compatible version change from $previousVersion to $version (compatibility: ${reconciliation.name})"
   }
-  @data class IncompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(false) {
+  case class IncompatibleVersion(version: String, previousVersion: String, reconciliation: VersionCompatibility) extends ModuleStatus(false) {
     def message = s"incompatible version change from $previousVersion to $version (compatibility: ${reconciliation.name})"
   }
-  @data class Missing(version: String) extends ModuleStatus(false) {
+  case class Missing(version: String) extends ModuleStatus(false) {
     def message = "missing dependency"
   }
 
   private case class SemVerVersion(major: Int, minor: Int, patch: Int, suffix: Seq[Version.Item])
 
-  @deprecated("This method is internal.", "1.1.0")
-  def apply(
-    currentModules: Map[(String, String), String],
-    previousModules: Map[(String, String), String],
-    reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
-    defaultReconciliation: VersionCompatibility
-  ): DependencyCheckReport =
-    apply(
-      Compatibility.BinaryCompatible,
-      currentModules,
-      previousModules,
-      reconciliations,
-      defaultReconciliation
-    )
-
   private[sbtversionpolicy] def apply(
-    compatibilityIntention: Compatibility,
     currentModules: Map[(String, String), String],
     previousModules: Map[(String, String), String],
     reconciliations: Seq[(ModuleMatchers, VersionCompatibility)],
     defaultReconciliation: VersionCompatibility
   ): DependencyCheckReport = {
 
-    // FIXME These two lines compute the same result. What is the reason for having two directions?
-    val backward = moduleStatuses(compatibilityIntention, currentModules, previousModules, reconciliations, defaultReconciliation)
-    val forward = moduleStatuses(compatibilityIntention, currentModules, previousModules, reconciliations, defaultReconciliation)
+    def report(compatibility: Compatibility) =
+      moduleStatuses(compatibility, currentModules, previousModules, reconciliations, defaultReconciliation)
 
-    DependencyCheckReport(backward, forward)
+    DependencyCheckReport(Map(
+      IncompatibilityType.BinaryIncompatibility -> report(Compatibility.BinaryCompatible),
+      IncompatibilityType.SourceIncompatibility -> report(Compatibility.BinaryAndSourceCompatible)
+    ))
   }
 
   @deprecated("This method is internal.", "1.1.0")
@@ -182,7 +162,7 @@ object DependencyCheckReport {
   private def extractSemVerNumbers(versionString: String): Option[SemVerVersion] = {
     val version = Version(versionString)
     version.items match {
-      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, suffix @ _*) =>
+      case Vector(major: Version.Number, minor: Version.Number, patch: Version.Number, suffix*) =>
         Some(SemVerVersion(major.value, minor.value, patch.value, suffix))
       case _ => 
         None // Not a semantic version number (e.g., 1.0-RC1)

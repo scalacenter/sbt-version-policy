@@ -14,3 +14,10 @@ val v101 =
     version := "1.0.1",
     versionPolicyIntention := Compatibility.BinaryCompatible
   )
+
+val root =
+  project.in(file("."))
+    .settings(
+      name := "library-test-skip-root",
+    )
+    .aggregate(v101)
