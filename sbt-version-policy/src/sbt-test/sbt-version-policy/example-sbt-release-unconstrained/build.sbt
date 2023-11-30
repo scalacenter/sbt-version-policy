@@ -26,6 +26,8 @@ val module =
 val root = project.in(file("."))
   .aggregate(module)
   .settings(
+    // Tell sbt-release to set the release version based on the level of compatibility with the previous release
+    releaseVersion := ReleaseVersion.fromAggregatedAssessedCompatibilityWithLatestRelease().value,
     // Custom release process for testing purpose only: the artifacts are locally published,
     // and we don’t push to the remote repository.
     releaseProcess := Seq[ReleaseStep](

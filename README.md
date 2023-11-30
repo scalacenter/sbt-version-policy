@@ -214,6 +214,9 @@ In this mode, you can use sbt-version-policy to check that incoming pull request
        import sbtversionpolicy.withsbtrelease.ReleaseVersion
        releaseVersion := ReleaseVersion.fromCompatibility(versionPolicyIntention.value)
        ~~~
+       The `releaseVersion` function bumps the release version according to the compatibility guarantees defined
+       by `versionPolicyIntention`. Optionally, you can also define a _qualifier_ to append to the release version
+       by setting the environment variable `VERSION_POLICY_RELEASE_QUALIFIER` (e.g., `VERSION_POLICY_RELEASE_QUALIFIER=RC1`).
     2. Reset `versionPolicyIntention` to `Compatibility.BinaryAndSourceCompatible` after every release.
        This can be achieved by managing the setting `versionPolicyIntention` in a separate file (like [sbt-release] manages the setting `version` in a separate file, by default), and by adding a step that overwrites the content of that file and commits it.
 
@@ -245,8 +248,13 @@ In this mode, you can use sbt-version-policy to assess the incompatibilities int
      ReleaseVersion.fromAggregatedAssessedCompatibilityWithLatestRelease().value
    }
    ~~~
+   In both cases, the `releaseVersion` function sets the release version according to the compatibility level
+   with the latest release. Optionally, you can also define a _qualifier_ to append to the release version
+   by setting the environment variable `VERSION_POLICY_RELEASE_QUALIFIER` (e.g., `VERSION_POLICY_RELEASE_QUALIFIER="-RC1"`).
 
-Note that this mode can be enabled only _after_ the first release of the project has already been published.
+Note that for the first release you have to set the release version yourself via the file `version.sbt` (e.g., set
+`1.0.0-SNAPSHOT` or `0.1.0-SNAPSHOT`). This is because `sbt-version-policy` needs a previous release to exist to be
+able to assess the compatibility level of the current state of the project with that release.
 
 ##### Example
 
