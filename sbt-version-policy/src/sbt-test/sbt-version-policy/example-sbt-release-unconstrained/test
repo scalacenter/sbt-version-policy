@@ -1,0 +1,30 @@
+# Setup repository
+$ exec git init
+$ exec git config user.email "email"
+$ exec git config user.name "name"
+
+$ exec git add .
+$ exec git commit -m "Initial commit"
+> reload
+
+# First release
+> release with-defaults release-version 1.0.0
+> checkTag_1_0_0
+> reload
+
+# New contributions
+$ copy-file file-to-add.template module/src/main/scala/org/organization/module/NewAPI.scala
+$ exec git add module/src/main/scala/org/organization/module/NewAPI.scala
+$ exec git commit -m "Some hard work"
+
+# Configure releaseVersion to bump the patch, minor, or major version number according
+# to the assessed compatibility level.
+# In practice, you would assign the releaseVersion in your build.sbt.
+# Here, we show how to optionally add a qualifier to the release version (e.g. `"-RC1"`)
+# via an environment variable RELEASE_VERSION_QUALIFIER
+> set releaseVersion := sbtversionpolicy.withsbtrelease.ReleaseVersion.fromAggregatedAssessedCompatibilityWithLatestRelease(qualifier = sys.env.getOrElse("RELEASE_VERSION_QUALIFIER", "")).value
+
+# Second release
+> release with-defaults
+# Check that sbt-version-policy bumped the minor version
+> checkTag_1_1_0
