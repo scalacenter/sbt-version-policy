@@ -12,7 +12,7 @@ inThisBuild(List(
       url("https://github.com/alexarchambault")
     )
   ),
-  versionPolicyIntention := Compatibility.None,
+  versionPolicyIntention := Compatibility.BinaryCompatible,
   libraryDependencySchemes += "com.typesafe" %% "mima-core" % "semver-spec"
 ))
 
