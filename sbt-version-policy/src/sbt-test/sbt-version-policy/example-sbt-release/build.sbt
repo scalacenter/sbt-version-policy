@@ -1,3 +1,4 @@
+import sbtversionpolicy.withsbtrelease.ReleaseVersion
 import sbtrelease._
 import ReleaseTransformations._
 
@@ -24,7 +25,7 @@ val root = project.in(file("."))
     publish / skip := true,
     // Configure releaseVersion to bump the patch, minor, or major version number according
     // to the compatibility intention set by versionPolicyIntention.
-    releaseVersion := setReleaseVersionFunction(versionPolicyIntention.value),
+    releaseVersion := ReleaseVersion.fromCompatibility(versionPolicyIntention.value),
     // Custom release process: run `versionCheck` after we have set the release version, and
     // reset compatibility intention to `Compatibility.BinaryAndSourceCompatible` after the release.
     // There are some other modifications for testing: the artifacts are locally published,
@@ -45,24 +46,6 @@ val root = project.in(file("."))
       // pushChanges // Disable pushing the changes to the remote repository for our tests only
     )
   )
-
-def setReleaseVersionFunction(compatibilityIntention: Compatibility): String => String = {
-  val maybeBump = compatibilityIntention match {
-    case Compatibility.None                      => Some(Version.Bump.Major)
-    case Compatibility.BinaryCompatible          => Some(Version.Bump.Minor)
-    case Compatibility.BinaryAndSourceCompatible => None // No need to bump the patch version, because it has already been bumped when sbt-release set the next release version
-  }
-  { (currentVersion: String) =>
-    val versionWithoutQualifier =
-      Version(currentVersion)
-        .getOrElse(versionFormatError(currentVersion))
-        .withoutQualifier
-    (maybeBump match {
-      case Some(bump) => versionWithoutQualifier.bump(bump)
-      case None       => versionWithoutQualifier
-    }).string
-  }
-}
 
 lazy val setAndCommitNextCompatibilityIntention = taskKey[Unit]("Set versionPolicyIntention to Compatibility.BinaryAndSourceCompatible, and commit the change")
 ThisBuild / setAndCommitNextCompatibilityIntention := {

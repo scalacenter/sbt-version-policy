@@ -1,0 +1,23 @@
+# Setup repository
+$ exec git init
+$ exec git config user.email "email"
+$ exec git config user.name "name"
+
+$ exec git add .
+$ exec git commit -m "Initial commit"
+> reload
+
+# First release
+> release with-defaults
+> checkTag_1_0_0
+> reload
+
+# New contributions
+$ copy-file file-to-add.template module/src/main/scala/org/organization/module/NewAPI.scala
+$ exec git add module/src/main/scala/org/organization/module/NewAPI.scala
+$ exec git commit -m "Some hard work"
+
+# Second release
+> release with-defaults
+# Check that sbt-version-policy bumped the minor version
+> checkTag_1_1_0
