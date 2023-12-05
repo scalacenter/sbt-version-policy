@@ -1,0 +1,5 @@
+> v1_root/publishLocal
+
+> v2_root/versionPolicyExportCompatibilityReport
+
+$ must-mirror v2_root/target/scala-2.13/compatibility-report.json expected-compatibility-report.json

@@ -5,7 +5,8 @@ This plugin:
 
 - configures [MiMa] to check for binary or source incompatibilities,
 - ensures that none of your dependencies are bumped or removed in an incompatible way,
-- reports incompatibilities with previous releases.
+- reports incompatibilities with previous releases,
+- sets the [`versionScheme`](https://www.scala-sbt.org/1.x/docs/Publishing.html#Version+scheme) of the project to `"early-semver"`.
 
 ## Install
 
@@ -259,6 +260,36 @@ able to assess the compatibility level of the current state of the project with 
 ##### Example
 
 We demonstrate the “unconstrained” mode in [this example](./sbt-version-policy/src/sbt-test/sbt-version-policy/example-sbt-release-unconstrained).
+
+### How to generate compatibility reports?
+
+You can export the compatibility reports in JSON format with the task `versionPolicyExportCompatibilityReport`.
+
+1. It does not matter whether `versionPolicyIntention` is set or not. If it is set, the report will list the incompatibilities that violate the intended compatibility level. If it is not set, all the incompatibilities will be reported.
+2. Invoke the task `versionPolicyExportCompatibilityReport` on the module you want to generate a report for. For example, for the default root module:
+   ~~~ shell
+   sbt versionPolicyExportCompatibilityReport
+   ~~~
+   The task automatically aggregates the compatibility reports of all its aggregated submodules.
+3. Read the file `target/scala-2.13/compatibility-report.json` (or `target/scala-3/compatibility-report.json`).
+   You can see an example of compatibility report [here](./sbt-version-policy/src/sbt-test/sbt-version-policy/export-compatibility-report/expected-compatibility-report.json).
+   
+   Here are examples of how to read some specific fields of the compatibility report with `jq`:
+   ~~~ shell
+   # Get the highest compatibility level satisfied by all the aggregated modules.
+   # Returns either 'incompatible', 'binary-compatible', or 'binary-and-source-compatible'.
+   cat compatibility-report.json | jq '.aggregated.compatibility.value'
+   
+   # Get a human-readable description of the highest compatibility level sastisfied
+   # by all the aggregated modules.
+   cat compatibility-report.json | jq '.aggregated.compatibility.label'
+   
+   # Get the version of the project against which the compatibility level
+   # was assessed.
+   cat compatibility-report.json | jq '.aggregated.modules[0]."previous-version"'
+   # Or, in the case of a single module report (no aggregated submodules):
+   cat compatibility-report.json | jq '."previous-version"'
+   ~~~
 
 ## How does `versionPolicyCheck` work?
 

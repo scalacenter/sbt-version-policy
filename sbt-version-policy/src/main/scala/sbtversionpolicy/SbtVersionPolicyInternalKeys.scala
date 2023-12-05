@@ -22,4 +22,6 @@ trait SbtVersionPolicyInternalKeys {
 
   final val versionPolicyVersionCompatibility = settingKey[VersionCompatibility]("VersionCompatibility used to determine compatibility.")
   final val versionPolicyVersionCompatResult  = taskKey[Compatibility]("Calculated level of compatibility required according to the current project version and the versioning scheme.")
+
+  final def versionPolicyCollectCompatibilityReports = TaskKey[CompatibilityReport]("versionPolicyCollectCompatibilityReports", "Collect compatibility reports for the export task.")
 }

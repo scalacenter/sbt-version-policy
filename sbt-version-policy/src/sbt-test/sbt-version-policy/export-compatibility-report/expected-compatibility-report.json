@@ -1,0 +1,26 @@
+{
+  "aggregated": {
+    "compatibility": {
+      "value": "incompatible",
+      "label": "Incompatible"
+    },
+    "modules": [
+      {
+        "module-name": "export-compatibility-report-test-a",
+        "previous-version": "1.0.0",
+        "compatibility": {
+          "value": "binary-compatible",
+          "label": "Binary compatible"
+        }
+      },
+      {
+        "module-name": "export-compatibility-report-test-b",
+        "previous-version": "1.0.0",
+        "compatibility": {
+          "value": "incompatible",
+          "label": "Incompatible"
+        }
+      }
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 package sbtversionpolicy
 
-import coursier.version.{ Version, VersionCompatibility }
+import com.typesafe.tools.mima.core.Problem
+import coursier.version.{Version, VersionCompatibility}
 import sbt.VersionNumber
 
 /** Compatibility level between two version values.
@@ -57,6 +58,22 @@ object Compatibility {
       case _ if p_1Zero && p_2 != n_2  => None
       case _ if p_1Zero && p_3 != n_3  => BinaryCompatible
       case _ => None // handle tag changes
+    }
+  }
+
+  def fromIssues(dependencyIssues: DependencyCheckReport, apiIssues: Seq[(IncompatibilityType, Problem)]): Compatibility = {
+    if (
+      dependencyIssues.validated(IncompatibilityType.SourceIncompatibility) &&
+        apiIssues.isEmpty
+    ) {
+      Compatibility.BinaryAndSourceCompatible
+    } else if (
+      dependencyIssues.validated(IncompatibilityType.BinaryIncompatibility) &&
+        !apiIssues.exists(_._1 == IncompatibilityType.BinaryIncompatibility)
+    ) {
+      Compatibility.BinaryCompatible
+    } else {
+      Compatibility.None
     }
   }
 

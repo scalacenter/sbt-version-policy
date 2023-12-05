@@ -26,7 +26,8 @@ object SbtVersionPolicyPlugin extends AutoPlugin {
 
   override def globalSettings =
     SbtVersionPolicySettings.reconciliationGlobalSettings ++
-      SbtVersionPolicySettings.schemesGlobalSettings
+      SbtVersionPolicySettings.schemesGlobalSettings ++
+      SbtVersionPolicySettings.exportGlobalSettings
 
   override def projectSettings =
     SbtVersionPolicySettings.updateSettings ++
@@ -50,25 +51,49 @@ object SbtVersionPolicyPlugin extends AutoPlugin {
       // Take all the projects aggregated by this project
       val aggregatedProjects = Keys.thisProject.value.aggregate
 
-      // Compute the highest compatibility level that is satisfied by all the aggregated projects
-      val maxCompatibility: Compatibility = Compatibility.BinaryAndSourceCompatible
-      aggregatedProjects.foldLeft(Def.task { maxCompatibility }) { (highestCompatibilityTask, project) =>
+      aggregatedCompatibility(aggregatedProjects, log) { submodule =>
         Def.task {
-          val highestCompatibility = highestCompatibilityTask.value
-          val compatibilities = (project / versionPolicyAssessCompatibility).value
-          // The most common case is to assess the compatibility with the latest release,
-          // so we look at the first element only and discard the others
-          compatibilities.headOption match {
-            case Some((_, compatibility)) =>
-              log.debug(s"Compatibility of aggregated project ${project.project} is ${compatibility}")
+          (submodule / versionPolicyAssessCompatibility).value
+        }
+      } { compatibilities =>
+        // The most common case is to assess the compatibility with the latest release,
+        // so we look at the first element only and discard the others
+        compatibilities.headOption.map(_._2)
+      }.map(_._1) // Discard submodules details
+    }
+
+  // Compute the highest compatibility level that is satisfied by all the aggregated projects
+  private[sbtversionpolicy] def aggregatedCompatibility[A](
+    submodules: Seq[ProjectRef],
+    log: Logger
+  )(
+    f: ProjectRef => Def.Initialize[Task[A]]
+  )(
+    compatibility: A => Option[Compatibility]
+  ): Def.Initialize[Task[(Compatibility, Seq[A])]] =
+    submodules.foldLeft(
+      Def.task {
+        (Compatibility.BinaryAndSourceCompatible: Compatibility, Seq.newBuilder[A])
+      }
+    ) { case (highestCompatibilityAndResults, module) =>
+      Def.task {
+        val (highestCompatibility, results) = highestCompatibilityAndResults.value
+        val result = f(module).value
+        compatibility(result) match {
+          case Some(compatibility) =>
+            log.debug(s"Compatibility of aggregated project ${module.project} is ${compatibility}")
+            (
               // Take the lowest of both
-              Compatibility.ordering.min(highestCompatibility, compatibility)
-            case None =>
-              log.debug(s"Unable to assess the compatibility level of the aggregated project ${project.project}")
-              highestCompatibility
-          }
+              Compatibility.ordering.min(highestCompatibility, compatibility),
+              results += result
+            )
+          case None =>
+            log.debug(s"Unable to assess the compatibility level of the aggregated project ${module.project}")
+            (highestCompatibility, results)
         }
       }
+    }.map { case (compatibility, builder) =>
+      (compatibility, builder.result())
     }
 
 }
