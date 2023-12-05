@@ -216,7 +216,7 @@ In this mode, you can use sbt-version-policy to check that incoming pull request
        ~~~
        The `releaseVersion` function bumps the release version according to the compatibility guarantees defined
        by `versionPolicyIntention`. Optionally, you can also define a _qualifier_ to append to the release version
-       by setting the environment variable `VERSION_POLICY_RELEASE_QUALIFIER` (e.g., `VERSION_POLICY_RELEASE_QUALIFIER=RC1`).
+       by setting the environment variable `VERSION_POLICY_RELEASE_QUALIFIER` (e.g., `VERSION_POLICY_RELEASE_QUALIFIER="-RC1"`).
     2. Reset `versionPolicyIntention` to `Compatibility.BinaryAndSourceCompatible` after every release.
        This can be achieved by managing the setting `versionPolicyIntention` in a separate file (like [sbt-release] manages the setting `version` in a separate file, by default), and by adding a step that overwrites the content of that file and commits it.
 
