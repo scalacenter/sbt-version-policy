@@ -17,6 +17,8 @@ trait SbtVersionPolicyKeys {
   final val versionPolicyFindMimaIssues         = taskKey[Seq[(ModuleID, Seq[(IncompatibilityType, Problem)])]]("Binary or source compatibility issues over the previously released artifacts.")
   final val versionPolicyFindIssues             = taskKey[Seq[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]]("Find both dependency issues and Mima issues.")
   final val versionPolicyAssessCompatibility    = taskKey[Seq[(ModuleID, Compatibility)]]("Assess the compatibility level of the project compared to its previous releases.")
+  final def versionPolicyExportCompatibilityReport = TaskKey[Unit]("versionPolicyExportCompatibilityReport", "Export the compatibility report into a JSON file.")
+  final def versionPolicyCompatibilityReportPath = SettingKey[File]("versionPolicyCompatibilityReportPath", s"Path of the compatibility report (used by ${versionPolicyExportCompatibilityReport.key.label}).")
   final val versionCheck                        = taskKey[Unit]("Checks that the version is consistent with the intended compatibility level defined via versionPolicyIntention")
 
   final val versionPolicyIgnored        = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")

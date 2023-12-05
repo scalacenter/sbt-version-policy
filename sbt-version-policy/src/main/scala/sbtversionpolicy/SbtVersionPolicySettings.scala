@@ -2,7 +2,7 @@ package sbtversionpolicy
 
 import com.typesafe.tools.mima.core.Problem
 import com.typesafe.tools.mima.plugin.MimaPlugin
-import coursier.version.{ModuleMatchers, Version, VersionCompatibility}
+import coursier.version.{ModuleMatchers, VersionCompatibility}
 import sbt.*
 import sbt.Keys.*
 import sbt.librarymanagement.CrossVersion
@@ -168,6 +168,7 @@ object SbtVersionPolicySettings {
         }
       }
     },
+
     versionPolicyReportDependencyIssues := {
       val log = streams.value.log
       val sv = scalaVersion.value
@@ -213,6 +214,7 @@ object SbtVersionPolicySettings {
         }
       }
     },
+
     versionCheck := Def.ifS((versionCheck / skip).toTask)(Def.task {
       ()
     })(Def.task {
@@ -240,12 +242,14 @@ object SbtVersionPolicySettings {
         throw new MessageOnlyException(s"Module ${moduleName} has a declared version number ${versionValue} that does not conform to its declared versionPolicyIntention of ${intention}. $detail")
       }
     }).value,
+
     versionPolicyCheck := Def.ifS((versionPolicyCheck / skip).toTask)(Def.task {
       ()
     })(Def.task {
       val ignored1 = versionPolicyMimaCheck.value
       val ignored2 = versionPolicyReportDependencyIssues.value
     }).value,
+
     // For every previous module, returns a list of problems paired with the type of incompatibility
     versionPolicyFindMimaIssues := Def.taskDyn[Seq[(ModuleID, Seq[(IncompatibilityType, Problem)])]] {
       val compatibility =
@@ -266,6 +270,7 @@ object SbtVersionPolicySettings {
           }
       }
     }.value,
+
     versionPolicyMimaCheck := Def.taskDyn {
       import Compatibility.*
       val compatibility =
@@ -313,6 +318,7 @@ object SbtVersionPolicySettings {
         }
       }
     }.value,
+
     versionPolicyFindIssues := Def.ifS((versionPolicyFindIssues / skip).toTask)(Def.task {
       streams.value.log.debug("Not finding incompatibilities with previous releases because 'versionPolicyFindIssues / skip' is 'true'")
       Seq.empty[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]
@@ -338,6 +344,7 @@ object SbtVersionPolicySettings {
         }
       })
     ).value,
+
     versionPolicyAssessCompatibility := Def.ifS((versionPolicyAssessCompatibility / skip).toTask)(Def.task {
       streams.value.log.debug("Not assessing the compatibility with previous releases because 'versionPolicyAssessCompatibility / skip' is 'true'")
       Seq.empty[(ModuleID, Compatibility)]
@@ -349,21 +356,60 @@ object SbtVersionPolicySettings {
       }
       val issues = versionPolicyFindIssues.value
       issues.map { case (previousRelease, (dependencyIssues, mimaIssues)) =>
-        val compatibility =
-          if (
-            dependencyIssues.validated(IncompatibilityType.SourceIncompatibility) &&
-              mimaIssues.isEmpty
-          ) {
-            Compatibility.BinaryAndSourceCompatible
-          } else if (
-            dependencyIssues.validated(IncompatibilityType.BinaryIncompatibility) &&
-              !mimaIssues.exists(_._1 == IncompatibilityType.BinaryIncompatibility)
-          ) {
-            Compatibility.BinaryCompatible
-          } else {
-            Compatibility.None
+        previousRelease -> Compatibility.fromIssues(dependencyIssues, mimaIssues)
+      }
+    }).value,
+
+    versionPolicyExportCompatibilityReport := {
+      val log = streams.value.log
+      val compatibilityReport = versionPolicyCollectCompatibilityReports.value
+      val targetFile =
+        versionPolicyCompatibilityReportPath.?.value
+          .getOrElse(crossTarget.value / "compatibility-report.json")
+      CompatibilityReport.write(targetFile, compatibilityReport, log)
+    },
+
+    versionPolicyCollectCompatibilityReports := Def.ifS(Def.task {
+      (versionPolicyCollectCompatibilityReports / skip).value
+    })(Def.task {
+      CompatibilityReport(None, None)
+    })(Def.taskDyn {
+      val module = thisProjectRef.value
+      val submodules = thisProject.value.aggregate
+      val log = streams.value.log
+
+      // Compatibility report of the current module
+      val maybeModuleReport =
+        Def.task {
+          val issues = (module / versionPolicyFindIssues).value
+          if (issues.size > 1) {
+            log.warn(s"Ignoring compatibility reports with versions ${issues.drop(1).map(_._1.revision).mkString(", ")} for module ${issues.head._1.name}. Remove this warning by setting 'versionPolicyPreviousVersions' to a single previous version.")
           }
-        previousRelease -> compatibility
+          issues.headOption.map {
+            case (previousRelease, (dependencyIssues, apiIssues)) =>
+              val compatibility = Compatibility.fromIssues(dependencyIssues, apiIssues)
+              CompatibilityModuleReport(previousRelease, compatibility, dependencyIssues, apiIssues)
+          }
+        }
+
+      // Compatibility reports of the aggregated modules (recursively computed)
+      val maybeAggregatedReports = Def.ifS[Option[(Compatibility, Seq[CompatibilityReport])]]({
+          Def.task { submodules.isEmpty }
+        })(Def.task {
+          None
+        })(SbtVersionPolicyPlugin.aggregatedCompatibility(submodules, log) { submodule =>
+          Def.task {
+            (submodule / versionPolicyCollectCompatibilityReports).value
+          }
+        } { compatibilityReport =>
+          compatibilityReport.moduleReport.map(_.compatibility)
+        }.map(Some(_)))
+
+      Def.task {
+        CompatibilityReport(
+          maybeModuleReport.value,
+          maybeAggregatedReports.value
+        )
       }
     }).value
   )
@@ -377,6 +423,13 @@ object SbtVersionPolicySettings {
 
   def schemesGlobalSettings = Seq(
     versionScheme := Some("early-semver")
+  )
+
+  val exportGlobalSettings: Seq[Def.Setting[?]] = Seq(
+    // Default [aggregation behavior](https://www.scala-sbt.org/1.x/docs/Multi-Project.html#Aggregation)
+    // is disabled for the “export” tasks because they handle
+    // their aggregated projects by themselves
+    versionPolicyExportCompatibilityReport / aggregate := false,
   )
 
   /** All the modules (as pairs of organization name and artifact name) defined
