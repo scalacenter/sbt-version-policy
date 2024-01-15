@@ -16,14 +16,7 @@ inThisBuild(List(
   libraryDependencySchemes += "com.typesafe" %% "mima-core" % "semver-spec"
 ))
 
-lazy val root = (project in file("."))
-  .aggregate(`sbt-version-policy`)
-  .settings(
-    name := "sbt-version-policy root",
-    publish / skip := true,
-  )
-
-lazy val `sbt-version-policy` = project
+lazy val `sbt-version-policy` = module
   .enablePlugins(SbtPlugin)
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,

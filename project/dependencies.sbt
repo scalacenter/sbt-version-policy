@@ -1,6 +1,6 @@
 // For using the plugins in their own build
 Compile / unmanagedSourceDirectories ++= Seq(
-  (ThisBuild / baseDirectory).value.getParentFile / "sbt-version-policy" / "src" / "main" / "scala",
+  (ThisBuild / baseDirectory).value.getParentFile / "modules" / "sbt-version-policy" / "src" / "main" / "scala",
 )
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.3")
