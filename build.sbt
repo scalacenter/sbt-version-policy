@@ -33,3 +33,7 @@ lazy val `sbt-version-policy` = module
       // Add Mima filters here
     ),
   )
+
+lazy val `sbt-version-policy-dynver` = module
+  .enablePlugins(SbtPlugin)
+  .dependsOn(`sbt-version-policy`)
