@@ -41,8 +41,6 @@ jobs:
           distribution: adopt
           cache: 'sbt'
 
-      - uses: olafurpg/setup-gpg@v3
-
       - name: Release
         run: sbt versionCheck ci-release
         env:
