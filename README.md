@@ -116,10 +116,10 @@ Some release processes require you to define the release version beforehand (e.g
 [sbt-ci-release] uses Git tags to compute the project version. You can integrate sbt-version-policy into a project that uses [sbt-ci-release] as follows:
 
 - check that incoming pull requests do not violate the intended compatibility level ([detailed documentation](#how-to-check-that-a-project-does-not-violate-the-desired-compatibility-level))
-  1. install the plugin using `sbt-version-policy-dynver` instead as explained in the [sbt-dynver integration](#supporting-multi-projects-builds):
-    ~~~ scala
-    addSbtPlugin("ch.epfl.scala" % "sbt-version-policy-dynver" % "<version>")
-    ~~~
+  1. if your project contains multiple sub-projects, set `versionPolicyIgnoredInternalDependencyVersions` as explained in the [sbt-dynver integration](#supporting-multi-projects-builds):
+     ~~~ scala
+     versionPolicyIgnoredInternalDependencyVersions := Some("^\\d+\\.\\d+\\.\\d+\\+\\d+".r)
+     ~~~
   2. set the intended compatibility level of the next release with the setting `versionPolicyIntention`
   3. run `sbt versionPolicyCheck` in your CI pipeline:
      ~~~ yaml
@@ -159,17 +159,8 @@ in the current build). In such a case, `sbt-version-policy` might report a false
 when checking the dependencies of `a` (because the project `b` now has a non-normalized version
 number, from which we are unable to draw any conclusions).
 
-To solve this issue, you can use `sbt-version-policy-dynver` (instead of `sbt-version-policy`) when
-adding the plugin:
-
-~~~ scala
-addSbtPlugin("ch.epfl.scala" % "sbt-version-policy-dynver" % "<version>")
-~~~
-
-This plugin will add a new setting to ignore the dependencies to internal projects when their
-version number matches some regular expression.
-
-If you want to use this manually, you can add the following to your `build.sbt`:
+To solve this issue, you can tell `sbt-version-policy` to ignore the dependencies to internal
+projects when their version number matches some regular expression:
 
 ~~~ scala
 // Ignore dependencies to internal modules whose version is like `1.2.3+4...`
