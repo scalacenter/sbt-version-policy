@@ -21,12 +21,7 @@ object DependencyCheck {
       .modules
       .filter(!_.evicted)
       .map(_.module)
-      .filter {
-        case module if module.extraAttributes.contains("sbtVersion") && module.extraAttributes.contains("scalaVersion") =>
-          !excludedModules.contains(module.organization -> s"${module.name}_${module.extraAttributes("scalaVersion")}")
-        case module =>
-          !excludedModules.contains(module.organization -> module.name)
-      }
+      .filter(module => !excludedModules.contains(module.organization -> module.name))
       .map { mod =>
         val name = CrossVersion(mod.crossVersion, scalaVersion, scalaBinaryVersion)
           .fold(mod.name)(_(mod.name))

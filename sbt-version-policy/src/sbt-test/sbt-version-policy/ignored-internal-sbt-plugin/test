@@ -1,0 +1,11 @@
+# Publish v1.0.0 of modules
+> a_1/publishLocal
+> b_1/publishLocal
+> c_1/publishLocal
+
+# Checking dependency issues fails because internal dependencies bumped their major version
+-> c_2/versionPolicyReportDependencyIssues
+
+# Explicitly ignore the major version bump makes versionPolicyReportDependencyIssues pass
+> set c_2/versionPolicyIgnoredInternalDependencyVersions := Some("2.0.0".r)
+> c_2/versionPolicyReportDependencyIssues

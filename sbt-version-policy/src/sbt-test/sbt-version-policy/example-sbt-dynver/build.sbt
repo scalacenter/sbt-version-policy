@@ -19,22 +19,9 @@ val b =
     )
     .dependsOn(a)
 
-val c =
-  project
-    .enablePlugins(SbtPlugin)
-    .settings(scalaVersion := "2.12.18")
-    .settings(name := "dynver-test-c")
-
-val d =
-  project
-    .enablePlugins(SbtPlugin)
-    .settings(scalaVersion := "2.12.18")
-    .settings(name := "dynver-test-d")
-    .dependsOn(c)
-
 val root =
   project.in(file("."))
-    .aggregate(a, b, c, d)
+    .aggregate(a, b)
     .settings(
       publish / skip := true
     )
