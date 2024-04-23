@@ -127,7 +127,9 @@ object SbtVersionPolicySettings {
       val excludedModules = ignoredModulesOfCurrentBuild.value
       val extractVersion = versionPolicyModuleVersionExtractor.value
 
+      log.debug(s"Computing module dependencies excluding ${excludedModules}")
       val currentDependencies = DependencyCheck.modulesOf(compileReport, excludedModules, sv, sbv, extractVersion, log)
+      log.debug(s"Computed dependencies: ${currentDependencies.keySet}")
 
       val reconciliations =
         DependencySchemes(
@@ -449,9 +451,15 @@ object SbtVersionPolicySettings {
               val projectCrossVersion = (projectRef / crossVersion).value
               val projectScalaVersion = (projectRef / scalaVersion).value
               val projectScalaBinaryVersion = (projectRef / scalaBinaryVersion).value
+              val isSbtPlugin = (projectRef / sbtPlugin).value
               if (versionRegex.findFirstMatchIn(projectVersion).isDefined) {
+                // Our goal is to compute the set of submodule names that should be excluded
+                // from dependency checks.
+                // For some reason, the compilation report returned by sbt adds a Scala binary
+                // version suffix to the module names except for sbt plugins.
                 val nameWithBinarySuffix =
-                  CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
+                  if (isSbtPlugin) projectName
+                  else CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
                     .fold(projectName)(_ (projectName))
                 val module = projectOrganization -> nameWithBinarySuffix
                 Some(module)
