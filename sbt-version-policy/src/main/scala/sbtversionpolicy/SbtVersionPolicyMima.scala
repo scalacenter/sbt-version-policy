@@ -155,5 +155,4 @@ object SbtVersionPolicyMima extends AutoPlugin {
       }
     },
   )
-
 }
