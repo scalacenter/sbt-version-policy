@@ -39,4 +39,16 @@ lazy val `sbt-version-policy` = project
     mimaBinaryIssueFilters ++= Seq(
       // Add Mima filters here
     ),
+    publishTo := {
+      if (isSnapshot.value) Some("sbt-dev" at "https://tubins.jfrog.io/tubins/sbt-dev")
+      else Some("sbt-release" at "https://tubins.jfrog.io/tubins/sbt-release")
+    },
+    credentials ++= {
+      Credentials.loadCredentials(Path.userHome / ".artifactory" / "credentials") match {
+        case Right(credentials: DirectCredentials) =>
+          Seq(credentials)
+        case Left(err: String) =>
+          Nil
+      }
+    },
   )
