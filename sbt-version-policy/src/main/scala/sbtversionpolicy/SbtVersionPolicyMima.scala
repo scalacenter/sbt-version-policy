@@ -1,16 +1,13 @@
 package sbtversionpolicy
 
 import java.io.{File, FileWriter, PrintWriter}
-
 import scala.collection.JavaConverters.*
 import scala.io.Source
 import scala.util.Using
 import scala.util.control.NoStackTrace
-
-import sbt.{AutoPlugin, Def, Keys, file, settingKey, taskKey}
+import sbt.{AutoPlugin, Def, Keys, file, fileToRichFile, settingKey, taskKey}
 import sbt.librarymanagement.{CrossVersion, ModuleID}
 import sbt.librarymanagement.ivy.DirectCredentials
-
 import coursier.version.{Previous, Version, VersionCompatibility}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import MimaPlugin.autoImport.mimaPreviousArtifacts
@@ -115,11 +112,13 @@ object SbtVersionPolicyMima extends AutoPlugin {
   )
 
   override def buildSettings = Def.settings(
-    coursierCredentialsFile := file {
-      if (sys.props("os.name").toLowerCase.contains("mac"))
-        s"${sys.props("user.home")}/Library/Application Support/Coursier/credentials.properties"
-      else
-        s"${sys.props("user.home")}/.config/coursier/credentials.properties"
+    coursierCredentialsFile := {
+      file {
+        if (sys.props("os.name").toLowerCase.contains("mac"))
+          s"${sys.props("user.home")}/Library/Application Support/Coursier/credentials.properties"
+        else
+          s"${sys.props("user.home")}/.config/coursier/credentials.properties"
+      }
     },
   )
 
