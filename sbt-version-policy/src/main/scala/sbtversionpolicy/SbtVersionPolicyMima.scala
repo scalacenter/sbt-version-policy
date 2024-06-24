@@ -1,13 +1,9 @@
 package sbtversionpolicy
 
-import java.io.{File, FileWriter, PrintWriter}
 import scala.collection.JavaConverters.*
-import scala.io.Source
-import scala.util.Using
 import scala.util.control.NoStackTrace
-import sbt.{AutoPlugin, Def, Keys, file, fileToRichFile, settingKey, taskKey}
+import sbt.{AutoPlugin, Def, Keys, settingKey, taskKey}
 import sbt.librarymanagement.{CrossVersion, ModuleID}
-import sbt.librarymanagement.ivy.DirectCredentials
 import coursier.version.{Previous, Version, VersionCompatibility}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import MimaPlugin.autoImport.mimaPreviousArtifacts
@@ -21,8 +17,6 @@ object SbtVersionPolicyMima extends AutoPlugin {
     val versionPolicyPreviousVersions = settingKey[Either[Throwable, Seq[String]]]("Previous versions to check compatibility against.")
     val getVersionPolicyPreviousVersions = taskKey[Seq[String]]("Previous versions to check compatibility against.")
     val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
-    val coursierCredentialsFile = settingKey[File]("The coursier credentials file containing credentials for resolvers used in the project.")
-    val exportCredentialsToCoursier = taskKey[Unit]("Export credentials to a coursier credentials properties file")
   }
 
   val versionPolicyInternal: SbtVersionPolicyInternalKeys =
@@ -111,17 +105,6 @@ object SbtVersionPolicyMima extends AutoPlugin {
     versionPolicyFirstVersion := None,
   )
 
-  override def buildSettings = Def.settings(
-    coursierCredentialsFile := {
-      file {
-        if (sys.props("os.name").toLowerCase.contains("mac"))
-          s"${sys.props("user.home")}/Library/Application Support/Coursier/credentials.properties"
-        else
-          s"${sys.props("user.home")}/.config/coursier/credentials.properties"
-      }
-    },
-  )
-
   override def projectSettings = Def.settings(
     versionPolicyVersionCompatibility := {
       import VersionCompatibility.{Always, Default, Strict}
@@ -167,41 +150,6 @@ object SbtVersionPolicyMima extends AutoPlugin {
           }
           .withRevision(version)
       }
-    },
-
-    exportCredentialsToCoursier := {
-      val credentials = Keys.credentials.value
-      val credentialsFile = coursierCredentialsFile.value
-      val preamble = "# Created by SbtVersionPolicyMima plugin"
-      val log = Keys.streams.value.log
-
-      if (credentialsFile.exists()) {
-        Using(Source.fromFile(credentialsFile)) {
-          source =>
-            if (!source.getLines().buffered.headOption.contains(preamble)) {
-              val backup = File.createTempFile("credentials-backup-", ".properties", credentialsFile.getParentFile)
-              log.info(s"Backup coursier credentials file to ${backup}")
-              if (!credentialsFile.renameTo(backup)) {
-                throw new RuntimeException("Failed to backup coursier credentials file") with NoStackTrace
-              }
-            }
-        }.get
-      }
-
-      credentialsFile.getParentFile().mkdirs()
-
-      Using(new PrintWriter(new FileWriter(credentialsFile))) {
-        writer =>
-          writer.println(preamble)
-          credentials.zipWithIndex.collect {
-            case (c: DirectCredentials, i) =>
-              writer.println(s"$i.host=${c.host}")
-              writer.println(s"$i.realm=${c.realm}")
-              writer.println(s"$i.username=${c.userName}")
-              writer.println(s"$i.password=${c.passwd}")
-              writer.println()
-          }
-      }.get
     },
   )
 
