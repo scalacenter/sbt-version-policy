@@ -1,6 +1,7 @@
 ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "2.13.2"
 ThisBuild / versionScheme := Some("semver-spec")
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 val `v0-1-0` =
   project.settings(

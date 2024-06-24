@@ -1,4 +1,5 @@
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 lazy val v1 = project
   .settings(

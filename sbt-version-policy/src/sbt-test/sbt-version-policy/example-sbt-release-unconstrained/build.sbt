@@ -14,7 +14,8 @@ inThisBuild(List(
       url("https://github.com/julienrf")
     )
   ),
-  scalaVersion := "3.0.1"
+  scalaVersion := "3.0.1",
+  versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories,
 ))
 
 val module =

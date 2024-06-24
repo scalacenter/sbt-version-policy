@@ -1,5 +1,6 @@
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / organization := "ch.epfl.scala"
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 val b1 = project
   .settings(

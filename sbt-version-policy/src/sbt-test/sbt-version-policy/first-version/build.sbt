@@ -1,3 +1,4 @@
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 lazy val a = project
   .settings(
@@ -22,4 +23,3 @@ lazy val b = project
   )
 
 lazy val check = taskKey[Unit]("")
-

@@ -1,6 +1,7 @@
 ThisBuild / scalaVersion := "2.12.19"
 ThisBuild / organization := "com.example"
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 val a_1 =
   project

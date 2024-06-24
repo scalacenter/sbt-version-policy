@@ -11,6 +11,7 @@ inThisBuild(List(
     )
   ),
   scalaVersion := "3.0.1",
+  versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories,
   versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 ))
 

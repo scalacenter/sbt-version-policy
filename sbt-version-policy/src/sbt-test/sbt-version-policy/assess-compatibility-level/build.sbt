@@ -1,6 +1,7 @@
 ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "2.13.2"
 ThisBuild / versionScheme := Some("semver-spec")
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 val checkTasks = Seq(
   TaskKey[Unit]("checkAssessedCompatibilityIsBinaryAndSourceCompatible") := {

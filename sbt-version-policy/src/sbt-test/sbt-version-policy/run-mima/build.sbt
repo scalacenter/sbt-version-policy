@@ -1,3 +1,5 @@
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
+
 lazy val core = project
   .settings(
     crossVersion := CrossVersion.disabled,

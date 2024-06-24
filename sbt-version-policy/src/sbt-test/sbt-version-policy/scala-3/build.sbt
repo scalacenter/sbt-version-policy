@@ -1,5 +1,6 @@
 ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "3.0.0-RC3"
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
 
 val `v1-0-0` =
   project.settings(

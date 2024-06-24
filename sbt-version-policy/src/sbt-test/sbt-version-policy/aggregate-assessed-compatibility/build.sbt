@@ -1,3 +1,5 @@
+ThisBuild / versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories
+
 // A project with two modules (“a” and “b”) and a root module that aggregates them
 
 val v1_a =

@@ -1,3 +1,10 @@
+inThisBuild(List(
+  scalaVersion := "2.12.11",
+  organization := "io.github.alexarchambault.sbtversionpolicy.test",
+  versionPolicyIntention := Compatibility.BinaryCompatible,
+  versionPolicyPreviousVersionRepositories := CoursierDefaultRepositories,
+))
+
 lazy val a = project
   .settings(
     shared,
@@ -114,12 +121,6 @@ lazy val h = project
     libraryDependencySchemes += "com.chuusai" %% "shapeless" % "strict",
     version := "0.1.0+3-1234abcd" // Version number typically produced by sbt-dynver
   )
-
-inThisBuild(List(
-  scalaVersion := "2.12.11",
-  organization := "io.github.alexarchambault.sbtversionpolicy.test",
-  versionPolicyIntention := Compatibility.BinaryCompatible
-))
 
 lazy val check = taskKey[Unit]("")
 
