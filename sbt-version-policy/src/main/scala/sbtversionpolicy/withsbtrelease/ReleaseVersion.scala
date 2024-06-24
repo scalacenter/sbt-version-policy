@@ -4,7 +4,7 @@ import sbtversionpolicy.Compatibility
 import sbtversionpolicy.SbtVersionPolicyPlugin.aggregatedAssessedCompatibilityWithLatestRelease
 import sbtversionpolicy.SbtVersionPolicyPlugin.autoImport.versionPolicyAssessCompatibility
 import sbt.*
-import sbtversionpolicy.SbtVersionPolicyMima.autoImport.versionPolicyPreviousVersions
+import sbtversionpolicy.SbtVersionPolicyMima.autoImport.getVersionPolicyPreviousVersions
 
 /** Convenient methods to integrate with the plugin sbt-release */
 object ReleaseVersion {
@@ -41,7 +41,7 @@ object ReleaseVersion {
 
   private def fromAssessedCompatibility(qualifier: String)(assessCompatibility: Def.Initialize[Task[Compatibility]]): Def.Initialize[Task[String => String]] =
     Def.ifS(Def.task {
-      versionPolicyPreviousVersions.value.isEmpty
+      getVersionPolicyPreviousVersions.value.isEmpty
     })(Def.task {
       // If there are no previous versions to assess the compatibility with,
       // fallback to the default release version function, which drops the qualifier

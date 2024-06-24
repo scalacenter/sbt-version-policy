@@ -180,7 +180,7 @@ object SbtVersionPolicySettings {
         versionPolicyIntention.?.value
           .getOrElse(throw new MessageOnlyException("Please set the key versionPolicyIntention to declare the compatibility you want to check"))
       val currentModule = projectID.value
-      val formattedPreviousVersions = formatVersions(versionPolicyPreviousVersions.value)
+      val formattedPreviousVersions = formatVersions(getVersionPolicyPreviousVersions.value)
 
       if (intention == Compatibility.None) {
         log.info(s"Not checking dependencies compatibility of module ${nameAndRevision(currentModule)} because versionPolicyIntention is set to 'Compatibility.None'")
@@ -326,11 +326,11 @@ object SbtVersionPolicySettings {
       Seq.empty[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]
     })(
       Def.ifS[Seq[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]](Def.task {
-        versionPolicyPreviousVersions.value.isEmpty
+        getVersionPolicyPreviousVersions.value.isEmpty
       })(Def.task {
         throw new MessageOnlyException("Unable to find compatibility issues because versionPolicyPreviousVersions is empty.")
       })(Def.task {
-        versionPolicyPreviousVersions.value
+        getVersionPolicyPreviousVersions.value
         val dependencyIssues = versionPolicyFindDependencyIssues.value
         val mimaIssues = versionPolicyFindMimaIssues.value
         assert(
