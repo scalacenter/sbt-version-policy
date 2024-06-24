@@ -3,6 +3,7 @@ package sbtversionpolicy
 import scala.collection.JavaConverters.*
 import scala.util.control.NoStackTrace
 import sbt.{AutoPlugin, Def, Keys, settingKey, taskKey}
+import sbt.KeyRanks.Invisible
 import sbt.librarymanagement.{CrossVersion, ModuleID}
 import coursier.version.{Previous, Version, VersionCompatibility}
 import com.typesafe.tools.mima.plugin.MimaPlugin
@@ -15,8 +16,10 @@ object SbtVersionPolicyMima extends AutoPlugin {
 
   object autoImport {
     val versionPolicyPreviousVersions = settingKey[Either[Throwable, Seq[String]]]("Previous versions to check compatibility against.")
-    val getVersionPolicyPreviousVersions = taskKey[Seq[String]]("Previous versions to check compatibility against.")
     val versionPolicyFirstVersion = settingKey[Option[String]]("First version this module was or will be published for.")
+
+    private[sbtversionpolicy] val getVersionPolicyPreviousVersions =
+      taskKey[Seq[String]]("Get previous versions or throw the error if it failed to resolve at load time").withRank(Invisible)
   }
 
   val versionPolicyInternal: SbtVersionPolicyInternalKeys =
