@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.12.19"
+ThisBuild / scalaVersion := "2.13.14"
 ThisBuild / organization := "com.example"
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 
