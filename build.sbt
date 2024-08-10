@@ -28,7 +28,7 @@ lazy val `sbt-version-policy` = project
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
-    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.3"),
+    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4"),
     libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "1.0.19",
       "io.get-coursier" %% "versions" % "0.3.1",
