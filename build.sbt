@@ -30,7 +30,7 @@ lazy val `sbt-version-policy` = project
     scriptedBufferLog := false,
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4"),
     libraryDependencies ++= Seq(
-      "io.get-coursier" % "interface" % "1.0.19",
+      "io.get-coursier" % "interface" % "1.0.22",
       "io.get-coursier" %% "versions" % "0.3.1",
       "com.lihaoyi" %% "ujson" % "3.1.4", // FIXME shade
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
