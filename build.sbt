@@ -31,7 +31,7 @@ lazy val `sbt-version-policy` = project
     addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.4"),
     libraryDependencies ++= Seq(
       "io.get-coursier" % "interface" % "1.0.24",
-      "io.get-coursier" %% "versions" % "0.3.1",
+      "io.get-coursier" %% "versions" % "0.3.3",
       "com.lihaoyi" %% "ujson" % "3.1.4", // FIXME shade
       "com.eed3si9n.verify" %% "verify" % "2.0.1" % Test,
     ),
