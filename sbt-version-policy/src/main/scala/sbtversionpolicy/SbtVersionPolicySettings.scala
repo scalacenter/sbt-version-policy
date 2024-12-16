@@ -330,7 +330,6 @@ object SbtVersionPolicySettings {
       })(Def.task {
         throw new MessageOnlyException("Unable to find compatibility issues because versionPolicyPreviousVersions is empty.")
       })(Def.task {
-        versionPolicyPreviousVersions.value
         val dependencyIssues = versionPolicyFindDependencyIssues.value
         val mimaIssues = versionPolicyFindMimaIssues.value
         assert(
