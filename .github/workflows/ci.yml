@@ -21,6 +21,7 @@ jobs:
         java-version: 11
         distribution: adopt
         cache: 'sbt'
+    - uses: sbt/setup-sbt@v1
     - name: Run tests
       run: sbt scripted versionPolicyCheck
 
@@ -40,6 +41,8 @@ jobs:
           java-version: 11
           distribution: adopt
           cache: 'sbt'
+
+      - uses: sbt/setup-sbt@v1
 
       - name: Release
         run: sbt versionCheck ci-release
