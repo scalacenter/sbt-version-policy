@@ -34,7 +34,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
     val sbv = Keys.scalaBinaryVersion.value
     val name = moduleName(projId, sv, sbv)
 
-    val ivyProps = sbtversionpolicy.internal.Resolvers.defaultIvyProperties(Keys.ivyPaths.value.ivyHome)
+    val ivyProps = sbtversionpolicy.internal.Resolvers.defaultIvyProperties(SbtVersionPolicyCompat.ivyHome.value)
     val repos = Keys.resolvers.value.flatMap { res =>
       val repoOpt = sbtversionpolicy.internal.Resolvers.repository(res, ivyProps, s => System.err.println(s))
       if (repoOpt.isEmpty)
@@ -43,7 +43,7 @@ object SbtVersionPolicyMima extends AutoPlugin {
     }
     // Can't reference Keys.fullResolvers, which is a task.
     // So we're using the usual default repositories from coursier here…
-    val fullRepos = coursierapi.Repository.defaults().asScala ++ repos
+    val fullRepos = coursierapi.Repository.defaults().asScala.toSeq ++ repos
     val res = coursierapi.Versions.create()
       .withRepositories(fullRepos*)
       .withModule(coursierapi.Module.of(projId.organization, name))

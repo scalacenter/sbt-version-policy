@@ -1,3 +1,8 @@
+import sbtcompat.PluginCompat._
+
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 lazy val a = project
   .settings(
     shared,
@@ -41,7 +46,7 @@ lazy val c = project
     libraryDependencies ++= Seq(
       "com.chuusai" %% "shapeless" % "2.3.3"
     ),
-    csrConfiguration := {
+    csrConfiguration := Def.uncached {
       import lmcoursier.definitions._
       csrConfiguration.value.withReconciliation(Vector(
         ModuleMatchers(

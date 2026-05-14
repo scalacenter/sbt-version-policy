@@ -45,12 +45,12 @@ val root = project.in(file("."))
     )
   )
 
-TaskKey[Unit]("checkTag_1_0_0") := {
+InputKey[Unit]("checkTag_1_0_0") := {
   import scala.sys.process._
   assert("git describe --tags".lineStream.exists(_.contains("v1.0.0")))
 }
 
-TaskKey[Unit]("checkTag_1_1_0") := {
+InputKey[Unit]("checkTag_1_1_0") := {
   import scala.sys.process._
   assert("git describe --tags".lineStream.exists(_.contains("v1.1.0")))
 }

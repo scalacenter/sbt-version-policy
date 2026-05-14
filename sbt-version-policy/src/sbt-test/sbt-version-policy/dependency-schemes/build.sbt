@@ -1,6 +1,9 @@
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / organization := "ch.epfl.scala"
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val b1 = project
   .settings(
     name := "dependency-schemes-test-b",

@@ -1,6 +1,9 @@
 ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "3.0.0-RC3"
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val `v1-0-0` =
   project.settings(
     name := "scala-3-test",
