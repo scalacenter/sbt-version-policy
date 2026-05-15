@@ -1,5 +1,8 @@
 ThisBuild / versionPolicyIntention := Compatibility.BinaryCompatible
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 lazy val v1 = project
   .settings(
     check := {},

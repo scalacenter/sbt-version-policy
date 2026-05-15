@@ -47,6 +47,7 @@ val root = project.in(file("."))
     )
   )
 
+@transient
 lazy val setAndCommitNextCompatibilityIntention = taskKey[Unit]("Set versionPolicyIntention to Compatibility.BinaryAndSourceCompatible, and commit the change")
 ThisBuild / setAndCommitNextCompatibilityIntention := {
   val log = streams.value.log
@@ -71,12 +72,12 @@ ThisBuild / setAndCommitNextCompatibilityIntention := {
   }
 }
 
-TaskKey[Unit]("checkTag_1_0_0") := {
+InputKey[Unit]("checkTag_1_0_0") := {
   import scala.sys.process._
   assert("git describe --tags".lineStream.exists(_.contains("v1.0.0")))
 }
 
-TaskKey[Unit]("checkTag_1_0_1") := {
+InputKey[Unit]("checkTag_1_0_1") := {
   import scala.sys.process._
   assert("git describe --tags".lineStream.exists(_.contains("v1.0.1")))
 }

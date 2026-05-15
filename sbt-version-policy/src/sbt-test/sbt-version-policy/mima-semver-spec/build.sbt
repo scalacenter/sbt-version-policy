@@ -2,6 +2,9 @@ ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "2.13.2"
 ThisBuild / versionScheme := Some("semver-spec")
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val `v0-1-0` =
   project.settings(
     name := "semver-spec-test",

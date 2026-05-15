@@ -2,16 +2,19 @@ ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "2.13.7"
 ThisBuild / versionScheme := Some("semver-spec")
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val checkTasks = Seq(
-  TaskKey[Unit]("checkAssessedCompatibilityIsBinaryAndSourceCompatible") := {
+  InputKey[Unit]("checkAssessedCompatibilityIsBinaryAndSourceCompatible") := {
     val (_, compatibility) = versionPolicyAssessCompatibility.value.head
     assert(compatibility == Compatibility.BinaryAndSourceCompatible, s"Unexpected assessed compatibility: ${compatibility}")
   },
-  TaskKey[Unit]("checkAssessedCompatibilityIsBinaryCompatible") := {
+  InputKey[Unit]("checkAssessedCompatibilityIsBinaryCompatible") := {
     val (_, compatibility) = versionPolicyAssessCompatibility.value.head
     assert(compatibility == Compatibility.BinaryCompatible, s"Unexpected assessed compatibility: ${compatibility}")
   },
-  TaskKey[Unit]("checkAssessedCompatibilityIsNone") := {
+  InputKey[Unit]("checkAssessedCompatibilityIsNone") := {
     val (_, compatibility) = versionPolicyAssessCompatibility.value.head
     assert(compatibility == Compatibility.None, s"Unexpected assessed compatibility: ${compatibility}")
   }

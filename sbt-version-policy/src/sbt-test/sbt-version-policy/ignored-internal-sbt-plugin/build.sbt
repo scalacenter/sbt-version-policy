@@ -2,6 +2,9 @@ ThisBuild / scalaVersion := "2.12.21"
 ThisBuild / organization := "com.example"
 ThisBuild / versionPolicyIntention := Compatibility.BinaryAndSourceCompatible
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val a_1 =
   project
     .settings(
