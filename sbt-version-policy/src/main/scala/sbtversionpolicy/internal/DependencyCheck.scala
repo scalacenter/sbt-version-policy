@@ -57,6 +57,7 @@ object DependencyCheck {
       .withName(CrossVersion(previousModuleId.crossVersion, sv, sbv).fold(previousModuleId.name)(_(previousModuleId.name)))
       .withCrossVersion(CrossVersion.disabled)
       .withExplicitArtifacts(Vector.empty)
+      .withConfigurations(Some("compile->compile"))
 
     val mod = depRes.moduleDescriptor(
       ModuleID("dummy-org", "dummy-name", "1.0"),
