@@ -1,0 +1,5 @@
+# Publish the baseline version (has okhttp % Runtime)
+> a/publishLocal
+> reload
+# Should succeed: the Runtime dependency has not changed
+> b/versionPolicyReportDependencyIssues
