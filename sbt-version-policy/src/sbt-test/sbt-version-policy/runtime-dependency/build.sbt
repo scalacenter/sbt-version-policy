@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / organization := "ch.epfl.scala"
 
 // Baseline version with a Runtime-only dependency that has transitive deps

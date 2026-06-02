@@ -20,7 +20,7 @@ lazy val b = project
   )
 
 inThisBuild(List(
-  scalaVersion := "2.12.11",
+  scalaVersion := "2.12.21",
   organization := "io.github.alexarchambault.sbtversionpolicy.test2",
   versionPolicyIntention := Compatibility.BinaryCompatible,
   libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % "early-semver"
