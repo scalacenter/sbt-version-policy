@@ -1,3 +1,6 @@
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 lazy val a = project
   .settings(
     name := "source-incompat-test",

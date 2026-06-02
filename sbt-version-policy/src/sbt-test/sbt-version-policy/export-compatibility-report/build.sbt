@@ -1,6 +1,9 @@
 ThisBuild / organization := "com.example"
 ThisBuild / scalaVersion := "2.13.2"
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val v1_a =
   project
     .settings(
@@ -56,6 +59,11 @@ val v2_root =
   project
     .settings(
       name := "export-compatibility-report-test-root",
-      publish / skip := true
+      publish / skip := true,
+      InputKey[Unit]("check") := {
+        val actual = IO.readLines(crossTarget.value / "compatibility-report.json")
+        val expect = IO.readLines(file("expected-compatibility-report.json"))
+        assert(actual == expect, actual)
+      }
     )
     .aggregate(v2_a, v2_b, v2_c)

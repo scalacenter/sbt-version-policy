@@ -18,12 +18,12 @@ jobs:
         fetch-depth: 0
     - uses: actions/setup-java@v5
       with:
-        java-version: 11
+        java-version: 17
         distribution: adopt
         cache: 'sbt'
     - uses: sbt/setup-sbt@v1
     - name: Run tests
-      run: sbt scripted versionPolicyCheck
+      run: sbt "+ test" "+ scripted" versionPolicyCheck
 
   publish:
     needs: test
@@ -38,7 +38,7 @@ jobs:
 
       - uses: actions/setup-java@v5
         with:
-          java-version: 11
+          java-version: 17
           distribution: adopt
           cache: 'sbt'
 

@@ -5,7 +5,7 @@ lazy val a = project
       "com.chuusai" %% "shapeless" % "2.3.2"
     ),
     version := "0.1.1",
-    apiURL := Some(new java.net.URL("https://www.google.fr/search?q=simple+test+library+scala+0.1.0")),
+    apiURL := Some(url("https://www.google.fr/search?q=simple+test+library+scala+0.1.0")),
     check := {
       assert(projectID.value.extraAttributes.nonEmpty)
       val prev = mimaPreviousArtifacts.value

@@ -1,5 +1,8 @@
 // A project with two modules (“a” and “b”) and a root module that aggregates them
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 val v1_a =
   project
     .settings(
@@ -45,7 +48,7 @@ val v2_root =
     .settings(
       name := "aggregated-test-root",
       publish / skip := true,
-      TaskKey[Unit]("check") := {
+      InputKey[Unit]("check") := {
         val compatibility = SbtVersionPolicyPlugin.aggregatedAssessedCompatibilityWithLatestRelease.value
         assert(compatibility == Compatibility.BinaryAndSourceCompatible)
       }
@@ -75,7 +78,7 @@ val v3_root =
     .settings(
       name := "aggregated-test-root",
       publish / skip := true,
-      TaskKey[Unit]("check") := {
+      InputKey[Unit]("check") := {
         val compatibility = SbtVersionPolicyPlugin.aggregatedAssessedCompatibilityWithLatestRelease.value
         assert(compatibility == Compatibility.BinaryCompatible)
       }
@@ -104,7 +107,7 @@ val v4_root =
     .settings(
       name := "aggregated-test-root",
       publish / skip := true,
-      TaskKey[Unit]("check") := {
+      InputKey[Unit]("check") := {
         val compatibility = SbtVersionPolicyPlugin.aggregatedAssessedCompatibilityWithLatestRelease.value
         assert(compatibility == Compatibility.None)
       }

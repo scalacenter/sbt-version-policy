@@ -75,6 +75,7 @@ object DependencyCheck {
         case (org, name) =>
           org != previousModuleId0.organization || name != previousModuleId0.name
       }
+      .toMap
 
     DependencyCheckReport(
       currentDependencies,

@@ -9,16 +9,27 @@ import scala.util.matching.Regex
 
 trait SbtVersionPolicyKeys {
   final val versionPolicyIntention              = settingKey[Compatibility]("Compatibility intentions for the next release.")
+  @transient
   final val versionPolicyPreviousArtifacts      = taskKey[Seq[ModuleID]]("Previous released artifacts used to test compatibility.")
+  @transient
   final val versionPolicyReportDependencyIssues = taskKey[Unit]("Check for removed or updated dependencies in an incompatible way.")
+  @transient
   final val versionPolicyCheck                  = taskKey[Unit]("Runs both versionPolicyReportDependencyIssues and versionPolicyMimaCheck")
+  @transient
   final val versionPolicyMimaCheck              = taskKey[Unit]("Runs Mima to check backward or forward compatibility depending on the intended change defined via versionPolicyIntention.")
+  @transient
   final val versionPolicyFindDependencyIssues   = taskKey[Seq[(ModuleID, DependencyCheckReport)]]("Compatibility issues in the library dependencies.")
+  @transient
   final val versionPolicyFindMimaIssues         = taskKey[Seq[(ModuleID, Seq[(IncompatibilityType, Problem)])]]("Binary or source compatibility issues over the previously released artifacts.")
+  @transient
   final val versionPolicyFindIssues             = taskKey[Seq[(ModuleID, (DependencyCheckReport, Seq[(IncompatibilityType, Problem)]))]]("Find both dependency issues and Mima issues.")
+  @transient
   final val versionPolicyAssessCompatibility    = taskKey[Seq[(ModuleID, Compatibility)]]("Assess the compatibility level of the project compared to its previous releases.")
+  @transient
   final def versionPolicyExportCompatibilityReport = TaskKey[Unit]("versionPolicyExportCompatibilityReport", "Export the compatibility report into a JSON file.")
+  @transient
   final def versionPolicyCompatibilityReportPath = SettingKey[File]("versionPolicyCompatibilityReportPath", s"Path of the compatibility report (used by ${versionPolicyExportCompatibilityReport.key.label}).")
+  @transient
   final val versionCheck                        = taskKey[Unit]("Checks that the version is consistent with the intended compatibility level defined via versionPolicyIntention")
 
   final val versionPolicyIgnored        = settingKey[Seq[OrganizationArtifactName]]("Exclude these dependencies from versionPolicyReportDependencyIssues.")
