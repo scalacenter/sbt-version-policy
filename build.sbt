@@ -46,7 +46,7 @@ lazy val `sbt-version-policy` = project
         case "2.12" =>
           sbtVersion.value
         case _ =>
-          "2.0.0-RC13"
+          "2.0.0"
       }
     },
     libraryDependencies ++= {

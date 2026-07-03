@@ -1,6 +1,9 @@
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / organization := "ch.epfl.scala"
 
+// https://github.com/sbt/sbt/issues/8248
+SettingKey[String]("outputPath") := thisProject.value.id
+
 // Baseline version with a Runtime-only dependency that has transitive deps
 // not on the Compile classpath (e.g. okhttp, okio, kotlin-stdlib).
 val a = project
