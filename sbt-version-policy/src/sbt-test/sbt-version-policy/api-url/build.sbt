@@ -15,7 +15,7 @@ lazy val a = project
   )
 
 inThisBuild(List(
-  scalaVersion := "2.12.11",
+  scalaVersion := "2.12.21",
   organization := "io.github.alexarchambault.sbtversionpolicy.test",
 ))
 

@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / organization := "com.example"
 // Before the first release, set it to `None` because there is no previous release to compare to
 ThisBuild / versionPolicyIntention := Compatibility.None

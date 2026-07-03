@@ -1,5 +1,5 @@
 ThisBuild / organization := "com.example"
-ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / scalaVersion := "2.13.18"
 
 // https://github.com/sbt/sbt/issues/8248
 SettingKey[String]("outputPath") := thisProject.value.id

@@ -131,7 +131,7 @@ lazy val l = project
   )
 
 inThisBuild(List(
-  scalaVersion := "2.12.11",
+  scalaVersion := "2.12.21",
   libraryDependencySchemes += "org.typelevel" %% "cats-kernel" % "semver-spec",
   organization := "io.github.alexarchambault.sbtversionpolicy.test",
 ))
