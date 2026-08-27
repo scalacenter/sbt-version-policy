@@ -19,7 +19,7 @@ jobs:
     - uses: actions/setup-java@v6
       with:
         java-version: 17
-        distribution: adopt
+        distribution: temurin
         cache: 'sbt'
     - uses: sbt/setup-sbt@v1
     - name: Run tests
