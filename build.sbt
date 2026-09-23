@@ -28,7 +28,7 @@ lazy val `sbt-version-policy` = project
   .settings(
     scriptedLaunchOpts += "-Dplugin.version=" + version.value,
     scriptedBufferLog := false,
-    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.1.6"),
+    addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "1.2.1"),
     crossScalaVersions += "3.8.4",
     scalacOptions ++= {
       scalaBinaryVersion.value match {
