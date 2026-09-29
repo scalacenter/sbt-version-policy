@@ -65,7 +65,7 @@ lazy val `sbt-version-policy` = project
       "com.eed3si9n.verify" %% "verify" % "1.0.0" % Test,
     ),
     // `versions` doesn't declare a version scheme, but MiMa finds 0.6.0 binary compatible with 0.5.3
-        versionPolicyIgnored += "io.get-coursier" %% "versions",
+    versionPolicyIgnored += "io.get-coursier" %% "versions",
     testFrameworks += new TestFramework("verify.runner.Framework"),
     mimaBinaryIssueFilters ++= Seq(
       // Add Mima filters here
