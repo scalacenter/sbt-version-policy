@@ -1,7 +1,7 @@
 package sbtversionpolicy.internal
 
 import com.typesafe.tools.mima.MimaInternals
-import com.typesafe.tools.mima.core.Problem
+import com.typesafe.tools.mima.core.{IncompatibleClassSignatureProblem, IncompatibleSignatureProblem, Problem, ProblemFilters}
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport.*
 import com.typesafe.tools.mima.plugin.MimaPlugin.binaryIssuesFinder
 import sbt.{Def, Task}
@@ -11,7 +11,14 @@ private[sbtversionpolicy] object MimaIssues {
   val binaryIssuesIterator: Def.Initialize[Task[Iterator[(sbt.ModuleID, (List[Problem], List[Problem]))]]] = Def.task {
     val binaryIssueFilters = mimaBackwardIssueFilters.value
     val sourceIssueFilters = mimaForwardIssueFilters.value
-    val issueFilters       = mimaBinaryIssueFilters.value
+    // mimaReportBinaryIssues adds these filters in a private task, so replicate them
+    val signatureFilters =
+      if (mimaReportSignatureProblems.value) Nil
+      else Seq(
+        ProblemFilters.exclude[IncompatibleSignatureProblem]("*"),
+        ProblemFilters.exclude[IncompatibleClassSignatureProblem]("*")
+      )
+    val issueFilters       = mimaBinaryIssueFilters.value ++ signatureFilters
     val previousClassfiles = mimaPreviousClassfiles.value
 
     binaryIssuesFinder.value.runMima(previousClassfiles, "both")
