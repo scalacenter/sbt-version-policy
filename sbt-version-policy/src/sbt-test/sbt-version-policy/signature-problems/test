@@ -1,0 +1,9 @@
+> v1-0-0/publishLocal
+> reload
+
+# Generic signature changes are ignored, like in mimaReportBinaryIssues
+> v1-1-0/mimaReportBinaryIssues
+> v1-1-0/versionPolicyCheck
+
+# Unless mimaReportSignatureProblems is set
+-> v1-1-0-signatures/versionPolicyCheck
