@@ -59,11 +59,13 @@ lazy val `sbt-version-policy` = project
       }
     },
     libraryDependencies ++= Seq(
-      "io.get-coursier" % "interface" % "1.0.28",
-      ("io.get-coursier" %% "versions" % "0.5.3").cross(CrossVersion.for3Use2_13),
+      "io.get-coursier" % "interface" % "1.0.30",
+      ("io.get-coursier" %% "versions" % "0.6.1").cross(CrossVersion.for3Use2_13),
       "com.lihaoyi" %% "ujson" % "3.1.4", // FIXME shade
       "com.eed3si9n.verify" %% "verify" % "1.0.0" % Test,
     ),
+    // `versions` doesn't declare a version scheme, but MiMa finds 0.6.0 binary compatible with 0.5.3
+    versionPolicyIgnored += "io.get-coursier" %% "versions",
     testFrameworks += new TestFramework("verify.runner.Framework"),
     mimaBinaryIssueFilters ++= Seq(
       // Add Mima filters here
