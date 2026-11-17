@@ -2,11 +2,9 @@ package sbtversionpolicy.internal
 
 import java.io.File
 
-import org.apache.ivy.plugins.resolver.IBiblioResolver
 import sbt.librarymanagement.{Configuration => _, MavenRepository => _, _}
 import sbt.util.Logger
-
-import scala.collection.JavaConverters._
+import sbtversionpolicy.SbtVersionPolicyCompat
 
 // originally adapted from https://github.com/alexarchambault/sbt-coursier-export/blob/4e8f95cade3a07029c09809722cfae64d0066a7a/src/main/scala/sbtcoursierexport/Resolvers.scala
 
@@ -92,33 +90,8 @@ object Resolvers {
     }
 
   private object IBiblioRepository {
-
-    private def stringVector(v: java.util.List[?]): Vector[String] =
-      Option(v).map(_.asScala.toVector).getOrElse(Vector.empty).collect {
-        case s: String => s
-      }
-
-    private def patterns(resolver: IBiblioResolver): Patterns = Patterns(
-      ivyPatterns = stringVector(resolver.getIvyPatterns),
-      artifactPatterns = stringVector(resolver.getArtifactPatterns),
-      isMavenCompatible = resolver.isM2compatible,
-      descriptorOptional = !resolver.isUseMavenMetadata,
-      skipConsistencyCheck = !resolver.isCheckconsistency
-    )
-
     def unapply(r: Resolver): Option[Patterns] =
-      r match {
-        case raw: RawRepository =>
-          raw.resolver match {
-            case b: IBiblioResolver =>
-              Some(patterns(b))
-                .filter(patternMatchGuard)
-            case _ =>
-              None
-          }
-        case _ =>
-          None
-      }
+      SbtVersionPolicyCompat.ibiblioPatterns(r).filter(patternMatchGuard)
   }
 
   private def patternMatchGuard(patterns: Patterns): Boolean =
