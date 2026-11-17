@@ -23,14 +23,16 @@ private[withsbtrelease] object Version {
   val PreReleaseQualifierR = """[\.-](?i:rc|m|alpha|beta)[\.-]?[0-9]*""".r
 
   def apply(s: String): Option[Version] = {
-    allCatch opt {
-      val VersionR(maj, subs, qual) = s
-      // parse the subversions (if any) to a Seq[Int]
-      val subSeq: Seq[Int] = Option(subs) map { str =>
-        // split on . and remove empty strings
-        str.split('.').filterNot(_.trim.isEmpty).map(_.toInt).toSeq
-      } getOrElse Nil
-      Version(maj.toInt, subSeq, Option(qual).filterNot(_.isEmpty))
+    s match {
+      case VersionR(maj, subs, qual) => allCatch opt {
+        // parse the subversions (if any) to a Seq[Int]
+        val subSeq: Seq[Int] = Option(subs) map { str =>
+          // split on . and remove empty strings
+          str.split('.').filterNot(_.trim.isEmpty).map(_.toInt).toSeq
+        } getOrElse Nil
+        Version(maj.toInt, subSeq, Option(qual).filterNot(_.isEmpty))
+      }
+      case _ => None
     }
   }
 

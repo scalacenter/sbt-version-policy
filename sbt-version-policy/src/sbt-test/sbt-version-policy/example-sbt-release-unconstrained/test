@@ -3,6 +3,7 @@ $ exec git init
 $ exec git config user.email "email"
 $ exec git config user.name "name"
 
+> reload
 $ exec git add .
 $ exec git commit -m "Initial commit"
 > reload
