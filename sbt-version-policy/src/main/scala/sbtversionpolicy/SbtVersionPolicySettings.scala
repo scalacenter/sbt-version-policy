@@ -452,13 +452,16 @@ object SbtVersionPolicySettings {
               val projectScalaVersion = (projectRef / scalaVersion).value
               val projectScalaBinaryVersion = (projectRef / scalaBinaryVersion).value
               val isSbtPlugin = (projectRef / sbtPlugin).value
+              val projectSbtBinaryVersion = (projectRef / pluginCrossBuild / sbtBinaryVersion).value
               if (versionRegex.findFirstMatchIn(projectVersion).isDefined) {
                 // Our goal is to compute the set of submodule names that should be excluded
                 // from dependency checks.
                 // For some reason, the compilation report returned by sbt adds a Scala binary
-                // version suffix to the module names except for sbt plugins.
+                // version suffix to the module names except for sbt 1 plugins. sbt 2 plugins
+                // get an `_sbt<sbt binary version>_<Scala binary version>` suffix.
                 val nameWithBinarySuffix =
-                  if (isSbtPlugin) projectName
+                  if (isSbtPlugin && projectSbtBinaryVersion.startsWith("1.")) projectName
+                  else if (isSbtPlugin) s"${projectName}_sbt${projectSbtBinaryVersion}_${projectScalaBinaryVersion}"
                   else CrossVersion(projectCrossVersion, projectScalaVersion, projectScalaBinaryVersion)
                     .fold(projectName)(_ (projectName))
                 val module = projectOrganization -> nameWithBinarySuffix
